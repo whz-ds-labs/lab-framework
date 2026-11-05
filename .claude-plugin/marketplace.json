@@ -1,0 +1,13 @@
+{
+  "name": "whz-ds-labs",
+  "owner": { "name": "whz-ds-labs" },
+  "metadata": { "description": "Plugins for building interactive data-science course labs." },
+  "plugins": [
+    {
+      "name": "ds-labs",
+      "source": "./plugin",
+      "description": "Build interactive, bilingual data-science course labs with the DS Labs framework.",
+      "version": "0.0.0"
+    }
+  ]
+}

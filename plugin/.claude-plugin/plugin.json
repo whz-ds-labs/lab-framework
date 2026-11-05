@@ -1,0 +1,8 @@
+{
+  "name": "ds-labs",
+  "version": "0.0.0",
+  "description": "Claude plugin for building interactive, bilingual data-science course labs with the DS Labs framework.",
+  "author": { "name": "whz-ds-labs contributors" },
+  "license": "MIT",
+  "repository": "https://github.com/whz-ds-labs/lab-framework"
+}
