@@ -1,0 +1,34 @@
+import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+const ALLOWED = new Set(['plugin/templates/course-intern/materials/README.md'])
+
+/**
+ * Returns every path that must never be committed: .ipynb/.pdf files, anything under a
+ * `materials` directory (except the single allowed template README), `docs/superpowers/`
+ * and `.env*` files (except `.env.example`).
+ */
+export function findForbidden(files) {
+  return files.filter((file) => {
+    const normalized = file.split('\\').join('/')
+    if (ALLOWED.has(normalized)) return false
+    if (/\.(ipynb|pdf)$/i.test(normalized)) return true
+    const segments = normalized.split('/')
+    if (segments.includes('materials')) return true
+    if (normalized.startsWith('docs/superpowers/') || normalized.includes('/docs/superpowers/')) return true
+    const base = segments[segments.length - 1] ?? ''
+    return base.startsWith('.env') && base !== '.env.example'
+  })
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const tracked = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
+    .split('\n')
+    .filter((line) => line.length > 0)
+  const bad = findForbidden(tracked)
+  if (bad.length > 0) {
+    console.error('Forbidden files tracked in git:\n' + bad.join('\n'))
+    process.exit(1)
+  }
+  console.log('ok')
+}
