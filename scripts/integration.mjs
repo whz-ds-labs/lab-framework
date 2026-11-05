@@ -24,7 +24,7 @@ function emptyDemo(demo) {
     const p = join(demo, f)
     if (existsSync(p)) saved[f] = readFileSync(p)
   }
-  for (const entry of readdirSync(demo)) rmSync(join(demo, entry), { recursive: true, force: true })
+  for (const entry of readdirSync(demo)) rmSync(join(demo, entry), { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
   return saved
 }
 

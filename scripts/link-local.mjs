@@ -9,14 +9,14 @@ import { packAll, sh, shOrThrow } from './pack.mjs'
 
 /** Counts installed copies of the given packages from `npm ls --parseable` output (one path per line). */
 export function countCopies(parseable, names) {
-  const counts = Object.fromEntries(names.map((n) => [n, 0]))
+  const seen = Object.fromEntries(names.map((n) => [n, new Set()]))
   for (const line of parseable.split(/\r?\n/)) {
     const path = line.trim().split('\\').join('/')
     for (const n of names) {
-      if (path.endsWith(`/node_modules/${n}`)) counts[n]++
+      if (path.endsWith(`/node_modules/${n}`)) seen[n].add(path)
     }
   }
-  return counts
+  return Object.fromEntries(names.map((n) => [n, seen[n].size]))
 }
 
 export async function linkLocal(courseDir) {
@@ -34,6 +34,9 @@ export async function linkLocal(courseDir) {
   sh('npm', ['ls', ...pkgs], { cwd: dir })
 
   const listing = sh('npm', ['ls', ...pkgs, '--all', '--parseable'], { cwd: dir, capture: true })
+  if (listing.error || listing.status !== 0) {
+    throw new Error(`npm ls --parseable failed (${listing.error ? listing.error.message : `exit code ${listing.status}`})`)
+  }
   const counts = countCopies(listing.stdout ?? '', ['vue', '@whz-ds-labs/lab-kit'])
   const dup = Object.entries(counts).filter(([, n]) => n > 1)
   if (dup.length > 0) {

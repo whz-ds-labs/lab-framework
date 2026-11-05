@@ -1,12 +1,19 @@
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-/** Returns every path that is an .ipynb/.pdf file or lies under a `materials` directory. */
+/**
+ * Returns every path that must never be committed: .ipynb/.pdf files, anything under a `materials`
+ * directory, `docs/superpowers/` and `.env*` files (except `.env.example`).
+ */
 export function findForbidden(files) {
   return files.filter((file) => {
     const normalized = file.split('\\').join('/')
     if (/\.(ipynb|pdf)$/i.test(normalized)) return true
-    return normalized.split('/').includes('materials')
+    const segments = normalized.split('/')
+    if (segments.includes('materials')) return true
+    if (normalized.startsWith('docs/superpowers/') || normalized.includes('/docs/superpowers/')) return true
+    const base = segments[segments.length - 1] ?? ''
+    return base.startsWith('.env') && base !== '.env.example'
   })
 }
 

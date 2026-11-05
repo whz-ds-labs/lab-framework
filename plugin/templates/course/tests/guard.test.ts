@@ -10,8 +10,11 @@ describe('findForbidden', () => {
   it('flags notebooks, pdfs and materials directories', () => {
     expect(findForbidden(['a/b.ipynb', 'x/Slides.PDF', 'materials/x.csv', 'labs/a/materials/y.txt'])).toHaveLength(4)
   })
+  it('flags docs/superpowers and env files', () => {
+    expect(findForbidden(['docs/superpowers/plans/p.md', '.env', 'labs/a/.env.local'])).toHaveLength(3)
+  })
   it('does not flag lookalikes', () => {
-    expect(findForbidden(['src/materialsHelper.ts', 'README.md'])).toEqual([])
+    expect(findForbidden(['src/materialsHelper.ts', 'README.md', '.env.example'])).toEqual([])
   })
   it('fails the CLI on a tracked umlaut pdf', () => {
     const repo = mkdtempSync(join(tmpdir(), 'guard umlaut '))

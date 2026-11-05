@@ -46,9 +46,10 @@ describe('real course template', () => {
       if (name === 'typescript') continue
       expect(range, name).toMatch(/^\d+\.\d+\.\d+$/)
     }
-    for (const name of ['vite', 'vitest', 'vue', 'katex', 'd3-scale', '@types/d3-scale', '@playwright/test', 'stylelint']) {
-      expect(all[name], name).toBe(rootPkg.devDependencies[name])
+    for (const [name, range] of Object.entries(pkg.devDependencies as Record<string, string>)) {
+      expect(range, name).toBe(rootPkg.devDependencies[name])
     }
+    for (const name of ['vue', 'katex', 'd3-scale']) expect(all[name], name).toBe(rootPkg.devDependencies[name])
     for (const script of ['dev', 'build', 'preview', 'test', 'test:py', 'golden', 'test:e2e', 'lint:css', 'guard', 'changed-labs']) {
       expect(pkg.scripts[script], script).toBeTruthy()
     }
@@ -70,6 +71,8 @@ describe('real course template', () => {
       expect(text).toContain('on:')
       expect(text).toContain('jobs:')
     }
+    expect(read(dir, '.github/workflows/ci.yml')).toContain('${{ github.event.repository.name }}')
+    expect(read(dir, '.github/workflows/ci.yml')).toContain('${{ runner.os }}')
     expect(read(dir, '.github/workflows/pages.yml')).toContain('${{ github.event.repository.name }}')
     expect(read(dir, 'renovate.json')).toContain('"rangeStrategy": "pin"')
   })
