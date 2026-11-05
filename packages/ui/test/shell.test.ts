@@ -35,12 +35,24 @@ const AlphaView = defineComponent({
   },
 })
 
+// Same view component as alpha but its own state defaults: only the ToolHost key can tell the two routes apart.
+const gamma = defineTool<AlphaState>({
+  ...alpha,
+  id: 'gamma',
+  title: { de: 'Gamma', en: 'Gamma' },
+  parse: () => ({ state: { n: 9, mode: 'a' }, problems: [] }),
+  toQuery: () => ({}),
+  scenarios: [],
+  component: AlphaView,
+})
+
 const lab = defineLab({
   ...demoLab,
   title: { de: 'Demo-Labor', en: 'Demo lab' },
   tools: [
     defineTool({ ...alpha, title: { de: 'Alfa', en: 'Alpha' }, component: AlphaView }),
     defineTool({ ...beta, title: { de: 'Beta DE', en: 'Beta EN' } }),
+    gamma,
   ],
 })
 const course = defineCourse({
@@ -109,7 +121,7 @@ describe('LabShell', () => {
     const link = a.get('[data-scenario-link="a2"]')
     expect(link.attributes('href')).toBe('#/demo/alpha?mode=b&scenario=a2')
     expect(link.text()).toBe('Modus b')
-    expect(w.findAll('nav a.ds-pill')).toHaveLength(2)
+    expect(w.findAll('nav a.ds-pill')).toHaveLength(3)
   })
 
   it('renders the tool with the state of the address and marks the active pill', async () => {
@@ -153,9 +165,9 @@ describe('LabShell', () => {
 
   it('switches the tool pill labels with the language button', async () => {
     const w = await open('#/demo/alpha')
-    expect(w.findAll('nav a.ds-pill').map((a) => a.text())).toEqual(['Alfa', 'Beta DE'])
+    expect(w.findAll('nav a.ds-pill').map((a) => a.text())).toEqual(['Alfa', 'Beta DE', 'Gamma'])
     await w.get('[data-verify-unit="lang-toggle"]').trigger('click')
-    expect(w.findAll('nav a.ds-pill').map((a) => a.text())).toEqual(['Alpha', 'Beta EN'])
+    expect(w.findAll('nav a.ds-pill').map((a) => a.text())).toEqual(['Alpha', 'Beta EN', 'Gamma'])
     expect(document.documentElement.lang).toBe('en')
   })
 
@@ -186,17 +198,18 @@ describe('LabShell', () => {
     expect(document.body.style.overflow).toBe('')
   })
 
-  it('re-creates the tool view when switching tools and back', async () => {
-    const w = await open('#/demo/alpha')
+  it('re-creates the tool view with its own state when switching between tools of the same component', async () => {
+    const w = await open('#/demo/alpha?n=5')
     expect(alphaMounts).toBe(1)
-    window.location.hash = '#/demo/beta'
-    await settle()
-    expect(w.find('.n').exists()).toBe(false)
-    expect(w.get('[data-verify-unit="tool-host"]').attributes('data-verify-tool')).toBe('demo/beta')
-    window.location.hash = '#/demo/alpha'
+    expect(w.get('.n').text()).toBe('5')
+    window.location.hash = '#/demo/gamma'
     await settle()
     expect(alphaMounts).toBe(2)
-    expect(w.get('.n').exists()).toBe(true)
+    expect(w.get('.n').text()).toBe('9')
+    window.location.hash = '#/demo/alpha?n=4'
+    await settle()
+    expect(alphaMounts).toBe(3)
+    expect(w.get('.n').text()).toBe('4')
   })
 
   it('resets body overflow when unmounted while the drawer is modal', async () => {
