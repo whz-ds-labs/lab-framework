@@ -24,6 +24,23 @@ const text = (lang: Lang, id: string, part: string) => lookup(lab.messages[lang]
 const allText = (lang: Lang, id: string) => ['title', 'short', 'see', 'watch', 'next'].map((p) => text(lang, id, p)).join(' ')
 const base = analyze({})
 
+const r2d = (v: number): number => Number(v.toFixed(2))
+/** Every number in a text (decimal comma or point, optional minus sign), as numbers. */
+function numbersIn(text: string): number[] {
+  return [...text.matchAll(/-?\d+(?:[.,]\d+)?/g)].map((m) => Number(m[0].replace(',', '.')))
+}
+/** Fails for any number of the scenario texts (DE and EN) that is not in the proven set. */
+function expectOnlyProven(id: string, proven: number[]): void {
+  const allowed = new Set(proven.map(r2d))
+  for (const lang of ['de', 'en'] as const) {
+    for (const part of ['title', 'short', 'see', 'watch', 'next']) {
+      for (const n of numbersIn(text(lang, id, part))) {
+        expect(allowed.has(n), `${lang} scenario.${id}.${part} states ${n}, not in the proven set ${[...allowed].join(', ')}`).toBe(true)
+      }
+    }
+  }
+}
+
 describe('scenario definitions', () => {
   it('has s1 and s2 with the documented queries and actions', () => {
     expect(scenarios.map((s) => s.id)).toEqual(['s1', 's2'])
@@ -54,6 +71,14 @@ describe('s1: few noisy points give an unstable slope', () => {
   }
 })
 
+describe('s1: no number outside the proven set', () => {
+  it('every number in the texts is proven', () => {
+    const s1 = analyze(scenario('s1').query)
+    // inputs (n 8, noise 3), generating slope 0.5, 0 (sign of the slope), results and the default-view interval width
+    expectOnlyProven('s1', [8, 3, 0, 0.5, s1.slope, s1.r2, s1.ci.lo, s1.ci.hi, base.width])
+  })
+})
+
 describe('s2: one outlier pulls the line', () => {
   const s2 = analyze(scenario('s2').query)
 
@@ -74,4 +99,12 @@ describe('s2: one outlier pulls the line', () => {
       for (const v of nums) expect(t).toContain(fmt(lang, v, 2))
     })
   }
+})
+
+describe('s2: no number outside the proven set', () => {
+  it('every number in the texts is proven', () => {
+    const s2 = analyze(scenario('s2').query)
+    // 20 default points, outlier (9, -3), 0 (sign), default-view and scenario results
+    expectOnlyProven('s2', [20, 9, -3, 0, base.slope, base.r2, base.width, s2.slope, s2.r2, s2.width, s2.ci.lo])
+  })
 })

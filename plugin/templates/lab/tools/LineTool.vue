@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { LabError, fmt, useI18n, verifyAttrs, type VerifyState } from '@whz-ds-labs/lab-kit'
 import type { JobHandle } from '@whz-ds-labs/lab-kit/worker'
 import { Formula, LinearSlider, PlotFrame, PointLayer, StatusPanel } from '@whz-ds-labs/ui'
@@ -40,6 +40,16 @@ const full = computed(() => props.state.pts.length >= MAX_PTS)
 function addPoint(p: { x: number; y: number }): void {
   if (full.value) return // ignored at the maximum
   set({ pts: [...props.state.pts, toPoint(p)] })
+}
+const plotPanel = ref<HTMLElement | null>(null)
+/** Keyboard way to add a point: at the plot center on the fitted line; the new point takes the focus (arrow keys move it). */
+async function addPointAtCenter(): Promise<void> {
+  if (full.value) return
+  const x = (X_RANGE.min + X_RANGE.max) / 2
+  addPoint({ x, y: fit.value.ok ? fit.value.intercept + fit.value.slope * x : (Y_RANGE.min + Y_RANGE.max) / 2 })
+  await nextTick()
+  const own = plotPanel.value?.querySelectorAll<SVGElement>('[data-layer="point"][tabindex="0"]')
+  own?.[own.length - 1]?.focus()
 }
 function dragPoint(i: number, p: { x: number; y: number }): void {
   set({ pts: props.state.pts.map((q, j) => (j === i ? toPoint(p) : q)) })
@@ -156,7 +166,7 @@ const noiseFormat = (v: number): string => fmt(lang.value, v, 1)
 <template>
   <div class="line-tool">
     <div class="main">
-      <section class="panel" v-bind="plotAttrs">
+      <section ref="plotPanel" class="panel" v-bind="plotAttrs">
         <h2>{{ t('line.plot.title') }}</h2>
         <PlotFrame
           :x-domain="[X_RANGE.min, X_RANGE.max]"
@@ -186,6 +196,9 @@ const noiseFormat = (v: number): string => fmt(lang.value, v, 1)
         </PlotFrame>
         <div class="row">
           <p class="hint">{{ full ? t('line.click.full') : t('line.click.hint') }}</p>
+          <button type="button" class="ds-btn" data-action="add-point" :disabled="full" @click="addPointAtCenter">
+            {{ t('line.add') }}
+          </button>
           <button
             type="button"
             class="ds-btn"

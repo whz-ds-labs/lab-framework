@@ -100,6 +100,7 @@ function onMove(e: MouseEvent) {
       </g>
       <rect
         class="capture"
+        data-plot-capture
         :width="innerW"
         :height="innerH"
         @click="onClick"

@@ -39,12 +39,29 @@ test('a slider change updates the URL and the fit', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('keyboard only: the add-point button adds a point, focuses it and the arrow keys move it', async ({ page }) => {
+  await open(page)
+  const plot = page.locator(unit('line-plot'))
+  const add = page.locator('[data-action="add-point"]')
+  await add.focus()
+  await page.keyboard.press('Enter')
+  await expect(plot).toHaveAttribute('data-verify-count', '21', T)
+  await expect(page).toHaveURL(/pts=5%3A/)
+  const own = page.locator(unit('line-plot') + ' [data-layer="point"][tabindex="0"]')
+  await expect(own).toHaveCount(1)
+  await expect(own.first()).toBeFocused()
+  const before = page.url()
+  await page.keyboard.press('ArrowUp')
+  await expect.poll(() => page.url()).not.toBe(before)
+  await expect(plot).toHaveAttribute('data-verify-count', '21')
+})
+
 test('a click on the plot adds a point, reset removes it again', async ({ page }) => {
   const errors = trackErrors(page)
   await open(page)
   const plot = page.locator(unit('line-plot'))
   await expect(plot).toHaveAttribute('data-verify-count', '20')
-  await page.locator(`${unit('line-plot')} rect.capture`).click({ position: { x: 200, y: 60 } })
+  await page.locator(`${unit('line-plot')} [data-plot-capture]`).click({ position: { x: 200, y: 60 } })
   await expect(plot).toHaveAttribute('data-verify-count', '21', T)
   await expect(page).toHaveURL(/pts=/)
   await page.locator('[data-action="reset-points"]').click()
@@ -93,7 +110,9 @@ test('s2 by link runs the bootstrap exactly once and reaches ready; applying it 
   // data-verify-count of the bootstrap unit is the number of runs started in this view
   await expect(bootstrap(page)).toHaveAttribute('data-verify-count', '1')
   await expect(fit(page)).toHaveAttribute('data-verify-count', '21')
-  await page.waitForTimeout(1000)
+  // a language toggle is an unrelated update: it must not start another run
+  await page.locator(unit('lang-toggle')).click()
+  await expect(page).toHaveURL(/lang=en/)
   await expect(bootstrap(page)).toHaveAttribute('data-verify-count', '1')
   await expect(bootstrap(page)).toHaveAttribute('data-verify-state', 'ready')
 
@@ -102,7 +121,7 @@ test('s2 by link runs the bootstrap exactly once and reaches ready; applying it 
   await drawer(page).locator('a[data-help-scenario="s2"]').click()
   await expect(bootstrap(page)).toHaveAttribute('data-verify-count', '2', T)
   await expectVerifyState(page, 'bootstrap', 'ready')
-  await page.waitForTimeout(500)
+  // (a later extra run could only be observed by waiting; the run counter is bumped synchronously at start)
   await expect(bootstrap(page)).toHaveAttribute('data-verify-count', '2')
   expect(errors).toEqual([])
 })

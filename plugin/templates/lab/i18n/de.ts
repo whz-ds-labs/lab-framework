@@ -10,9 +10,10 @@ export const de: Catalog = {
     seed: { label: 'Seed (Zufallsstartwert)' },
     click: {
       label: 'Klick ins Diagramm',
-      hint: 'Klicke ins Diagramm, um einen eigenen Punkt zu setzen.',
+      hint: 'Klicke ins Diagramm oder nutze „Punkt hinzufügen“, um einen eigenen Punkt zu setzen; mit den Pfeiltasten verschiebst du ihn.',
       full: 'Mehr als 30 eigene Punkte sind nicht möglich.',
     },
+    add: 'Punkt hinzufügen',
     userPoint: 'Eigener Punkt',
     reset: 'Punkte zurücksetzen',
     slope: 'Steigung',
@@ -45,7 +46,7 @@ export const de: Catalog = {
         noise: 'Das Rauschen bestimmt, wie stark die Punkte um die wahre Gerade streuen.',
         seed: 'Der Seed wählt die Zufallszahlen aus: derselbe Seed ergibt immer dieselben Punkte.',
         click:
-          'Ein Klick ins Diagramm setzt einen eigenen Punkt (höchstens 30). Ziehen verschiebt ihn, ein Rechtsklick oder Entf entfernt ihn; „Punkte zurücksetzen“ löscht alle.',
+          'Ein Klick ins Diagramm oder der Knopf „Punkt hinzufügen“ setzt einen eigenen Punkt (höchstens 30). Ziehen oder die Pfeiltasten verschieben ihn, ein Rechtsklick oder Entf entfernt ihn; „Punkte zurücksetzen“ löscht alle.',
         bootstrap: 'Startet die Berechnung des Intervalls im Hintergrund; ändern sich die Punkte, wird das Ergebnis verworfen.',
       },
     },

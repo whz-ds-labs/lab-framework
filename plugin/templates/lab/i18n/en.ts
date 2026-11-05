@@ -10,9 +10,10 @@ export const en: Catalog = {
     seed: { label: 'Seed (random start value)' },
     click: {
       label: 'Click in the plot',
-      hint: 'Click in the plot to add a point of your own.',
+      hint: 'Click in the plot or use "Add point" to add a point of your own; move it with the arrow keys.',
       full: 'No more than 30 own points are possible.',
     },
+    add: 'Add point',
     userPoint: 'Own point',
     reset: 'Reset points',
     slope: 'Slope',
@@ -44,7 +45,7 @@ export const en: Catalog = {
         noise: 'Noise sets how far the points scatter around the true line.',
         seed: 'The seed selects the random numbers: the same seed always gives the same points.',
         click:
-          'A click in the plot adds a point of your own (30 at most). Dragging moves it, a right click or Delete removes it; "Reset points" clears them all.',
+          'A click in the plot or the "Add point" button adds a point of your own (30 at most). Dragging or the arrow keys move it, a right click or Delete removes it; "Reset points" clears them all.',
         bootstrap: 'Starts the interval computation in the background; when the points change, the result is discarded.',
       },
     },
