@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const pluginDir = join(repo, 'plugin')
 
-const SKILLS = ['lab-start', 'lab-analyze', 'lab-build', 'lab-design', 'lab-release']
+const SKILLS = ['lab-start', 'lab-analyze', 'lab-build', 'lab-design', 'lab-release', 'lab-standards']
 const AGENTS = ['lab-plan-reviewer', 'lab-verifier', 'lab-design-reviewer']
 
 function walk(dir: string): string[] {
@@ -27,7 +27,7 @@ const FORBIDDEN = ['C:\\Users', '/Users/', '@gmail.com', 'AlexFractalNode', 'Cla
 const TEXT = /\.(md|ts|vue|js|mjs|json|py|toml|yml|yaml|css|html|txt|lock)$|(^|[\/])_[^\/]+$|LICENSE$/
 
 describe('skills and agents', () => {
-  it('the five skills exist', () => {
+  it('the six skills exist', () => {
     for (const s of SKILLS) expect(existsSync(join(pluginDir, 'skills', s, 'SKILL.md')), s).toBe(true)
   })
 
@@ -80,6 +80,27 @@ describe('skills and agents', () => {
     for (const needle of ['scaffold.mjs" course', 'scaffold.mjs" intern', 'scaffold.mjs" lab', 'gh auth status', 'node -v', 'uv --version', '--packs']) {
       expect(text, needle).toContain(needle)
     }
+  })
+
+  it('lab-standards links every reference file and every link resolves', () => {
+    const dir = join(pluginDir, 'skills', 'lab-standards')
+    const text = readFileSync(join(dir, 'SKILL.md'), 'utf8')
+    const refs = ['golden-tests', 'lessons-dt-labs', 'lessons-gp-labs', 'git-and-materials', 'windows-powershell', 'claude-plugin-notes']
+    const linked = [...text.matchAll(/\]\((references\/[^)#]+\.md)\)/g)].map((m) => m[1]!)
+    expect([...linked].sort()).toEqual(refs.map((r) => `references/${r}.md`).sort())
+    for (const l of linked) expect(existsSync(join(dir, l)), l).toBe(true)
+    const onDisk = readdirSync(join(dir, 'references')).filter((f) => f.endsWith('.md'))
+    expect(onDisk.sort()).toEqual(refs.map((r) => `${r}.md`).sort())
+    for (const r of refs) expect(readFileSync(join(dir, 'references', `${r}.md`), 'utf8').trim().length, r).toBeGreaterThan(300)
+  })
+
+  it('lab-standards frontmatter has no allowed-tools and lab-build references it unconditionally', () => {
+    const std = readFileSync(join(pluginDir, 'skills', 'lab-standards', 'SKILL.md'), 'utf8')
+    expect(std.split(/\r?\n---/)[0]).not.toContain('allowed-tools')
+    const build = readFileSync(join(pluginDir, 'skills', 'lab-build', 'SKILL.md'), 'utf8')
+    expect(build).toContain('lab-standards')
+    expect(build).not.toContain('when that skill is available')
+    expect(build).toContain('golden-tests.md')
   })
 
   it('inventory.py reports "no materials found" on an empty directory', () => {

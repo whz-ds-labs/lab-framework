@@ -5,7 +5,7 @@ description: Guardrails for building a DS Labs lab (core, tools, scenarios, help
 
 # lab-build
 
-Lab-specific rules that sit on top of the superpowers skills (`superpowers:test-driven-development`, `superpowers:subagent-driven-development`). Follow them for every file under `labs/<topic>/`. For design rules load `lab-design`. For numerical pitfalls, golden tolerances, Windows and git details load the references of `lab-standards`, when that skill is available.
+Lab-specific rules that sit on top of the superpowers skills (`superpowers:test-driven-development`, `superpowers:subagent-driven-development`). Follow them for every file under `labs/<topic>/`. For design rules load `lab-design`. Load `lab-standards` for the knowledge references: `references/golden-tests.md` (tolerances, float-exact checks, tie oracle, file paths), `references/lessons-dt-labs.md` and `references/lessons-gp-labs.md` (numerics, scenarios), `references/git-and-materials.md`, `references/windows-powershell.md` and `references/claude-plugin-notes.md`.
 
 ## Layout of a lab
 
