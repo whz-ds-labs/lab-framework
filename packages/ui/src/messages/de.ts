@@ -39,10 +39,14 @@ const de = {
     badge: 'Lehrbuch Kap. {chapter} · Notebook Zelle {code}',
     badgeNoCode: 'Lehrbuch Kap. {chapter}',
   },
+  plot: {
+    point: 'Punkt',
+  },
   status: {
     loading: 'Berechne …',
     empty: 'Keine Daten vorhanden.',
     error: 'Fehler:',
+    progress: '{done} von {total}',
   },
   home: {
     toolsTitle: 'Werkzeuge',

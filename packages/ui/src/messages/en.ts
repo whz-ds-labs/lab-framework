@@ -40,13 +40,17 @@ const en: Messages<typeof de> = {
     scenariosHint: 'Ready-made states to try, each with a short explanation.',
   },
   ref: {
-    badge: 'Textbook ch. {chapter} · notebook cell {code}',
+    badge: 'Textbook ch. {chapter} · Notebook cell {code}',
     badgeNoCode: 'Textbook ch. {chapter}',
+  },
+  plot: {
+    point: 'Point',
   },
   status: {
     loading: 'Computing …',
     empty: 'No data available.',
     error: 'Error:',
+    progress: '{done} of {total}',
   },
   home: {
     toolsTitle: 'Tools',
