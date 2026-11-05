@@ -1,13 +1,11 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join, normalize } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join, normalize } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { distAvailable, packageRoot as root } from './helpers/dist'
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const built = existsSync(join(root, 'dist', 'index.js'))
-
-if (!built) console.warn('exports.test.ts skipped: dist/ is missing - run "npm run build -w packages/lab-kit" first.')
+// Throws under CI when dist/ is missing; skips locally.
+const built = distAvailable()
 
 function targets(node: unknown): string[] {
   if (typeof node === 'string') return [node]
