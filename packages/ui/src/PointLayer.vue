@@ -102,7 +102,7 @@ function onContext(i: number) {
         r="12"
         :tabindex="editable ? 0 : undefined"
         :role="editable ? 'button' : undefined"
-        :aria-label="`${label ?? t('kit.plot.point')} ${i + 1}`"
+        :aria-label="editable ? `${label ?? t('kit.plot.point')} ${i + 1}` : undefined"
         @pointerdown.stop="onDown(i, $event)"
         @pointermove="onMove(i, $event)"
         @pointerup="onUp"

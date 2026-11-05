@@ -4,8 +4,8 @@ import type { Point } from '../core/fit'
 export type LineState = { n: number; noise: number; seed: number; pts: Point[] }
 
 export const MAX_PTS = 30
-const X_RANGE = { min: 0, max: 10 }
-const Y_RANGE = { min: -5, max: 15 }
+export const X_RANGE = { min: 0, max: 10 }
+export const Y_RANGE = { min: -5, max: 15 }
 const DECIMAL = '-?\\d+(?:\\.\\d+)?'
 const PAIR = new RegExp(`^(${DECIMAL}):(${DECIMAL})$`)
 

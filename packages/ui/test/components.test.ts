@@ -54,6 +54,13 @@ describe('plot components', () => {
     expect(w.find('[data-layer="point"]').attributes('aria-label')).toBe('Punkt 1')
   })
 
+  it('PointLayer leaves the hit targets of a read-only layer unlabeled (aria-label needs a role)', () => {
+    const w = inFrame(h(PointLayer, { x: [0.2], y: [0.3], editable: false }))
+    const hit = w.find('[data-layer="point"]')
+    expect(hit.attributes('aria-label')).toBeUndefined()
+    expect(hit.attributes('role')).toBeUndefined()
+  })
+
   it('PointLayer emits point-remove on Delete', async () => {
     const w = inFrame(h(PointLayer, { x: [0.5], y: [0.5] }))
     await w.find('[data-layer="point"]').trigger('keydown', { key: 'Delete' })
