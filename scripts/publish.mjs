@@ -5,7 +5,7 @@
 // Safe to re-run: published versions and existing tags are skipped. Any registry error other
 // than "not found" aborts without publishing.
 //
-// Task 20 must observe in the first real run (CI log of release.yml):
+// To observe in the first real release run (CI log of release.yml):
 //   1. `npm view` classification: both packages print "missing" (or "published" on a re-run),
 //      never "error" - i.e. the empty NODE_AUTH_TOKEN from viewEnv() avoids E401 and the E404
 //      JSON is recognized (stdout or stderr).
