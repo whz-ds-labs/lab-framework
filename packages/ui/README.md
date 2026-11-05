@@ -43,3 +43,10 @@ Werkzeugansicht). Eine Werkzeug-Komponente folgt diesem Vertrag:
 - Prop `state: S` (der aus der Adresse gelesene, typisierte Zustand) und Prop `labId: string`;
 - sendet `update:state` mit dem vollständigen nächsten Zustand (ersetzen, nie verändern); die Shell schreibt ihn in die Adresse;
 - optional `defineExpose({ runAction(name: string): void })`, genau einmal aufgerufen, wenn ein Szenario mit `action` angewendet wird.
+
+## Handbook / Handbuch
+
+- EN: [Architecture](../../docs/en/02-architecture.md), [Design v0](../../docs/en/03-design.md)
+- DE: [Architektur](../../docs/de/02-architecture.md), [Design v0](../../docs/de/03-design.md)
+
+Entry points / Einstiegspunkte: `.`, `/tokens.css`, `/style.css`.
