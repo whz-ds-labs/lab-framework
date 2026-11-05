@@ -47,5 +47,7 @@ def build():
 
 if __name__ == "__main__":
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(build(), indent=2, sort_keys=True) + "\n", encoding="utf8")
+    # newline="\n": the same bytes on Windows and Linux (the repo is LF-only).
+    with OUT.open("w", encoding="utf8", newline="\n") as f:
+        f.write(json.dumps(build(), indent=2, sort_keys=True) + "\n")
     print(f"wrote {OUT}")
