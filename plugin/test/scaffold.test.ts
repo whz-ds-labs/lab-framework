@@ -73,7 +73,7 @@ describe('scaffold course', () => {
   })
 
   it('rejects invalid ids', () => {
-    for (const course of ['Bad_Id', 'a', '1abc', '-ab', 'x'.repeat(42)]) {
+    for (const course of ['Bad_Id', 'a', '1abc', '-ab', 'a--b', 'knn-', 'x'.repeat(42)]) {
       expect(() => scaffold('course', { ...courseOpts(join(tmp, 'o')), course })).toThrow(/invalid id/)
     }
     expect(existsSync(join(tmp, 'o'))).toBe(false)
@@ -114,6 +114,8 @@ describe('scaffold course', () => {
       expect(deps[name]).not.toContain('\\')
     }
     expect(deps['@whz-ds-labs/ui']).toContain('whz-ds-labs-ui-0.0.0.tgz')
+    expect(deps['@whz-ds-labs/ui']).toContain('packs dir/')
+    expect(deps['@whz-ds-labs/ui']).toMatch(/^file:([A-Za-z]:)?\//)
     expect(deps['@whz-ds-labs/lab-kit']).toContain('whz-ds-labs-lab-kit-0.0.0.tgz')
   })
 
@@ -189,6 +191,41 @@ describe('scaffold lab', () => {
     expect(existsSync(join(dir, 'labs', 'line-fit'))).toBe(false)
   })
 
+  it('rejects ids that would yield invalid identifiers', () => {
+    for (const t of ['a--b', 'knn-', '-knn']) expect(() => scaffold('lab', labOpts(t))).toThrow(/invalid id/)
+    for (const t of ['default', 'new', 'class', 'delete']) {
+      expect(() => scaffold('lab', labOpts(t))).toThrow(/reserved word/)
+    }
+    expect(existsSync(join(dir, 'labs', 'default'))).toBe(false)
+  })
+
+  it('refuses when the derived identifier is already imported', () => {
+    scaffold('lab', labOpts('a1'))
+    const before = read(dir, 'site/course.ts')
+    expect(() => scaffold('lab', labOpts('a-1'))).toThrow(/already imports/)
+    expect(read(dir, 'site/course.ts')).toBe(before)
+    expect(existsSync(join(dir, 'labs', 'a-1'))).toBe(false)
+  })
+
+  it('refuses a course.ts without the import marker and leaves it unchanged', () => {
+    const file = join(dir, 'site', 'course.ts')
+    writeFileSync(file, 'export const course = {\n  // ds-labs:lab-list\n}\n')
+    const before = readFileSync(file, 'utf8')
+    expect(() => scaffold('lab', labOpts('line-fit'))).toThrow(/ds-labs:lab-imports/)
+    expect(readFileSync(file, 'utf8')).toBe(before)
+    expect(existsSync(join(dir, 'labs', 'line-fit'))).toBe(false)
+  })
+
+  it('keeps CRLF line endings when inserting at the markers', () => {
+    const file = join(dir, 'site', 'course.ts')
+    writeFileSync(file, readFileSync(file, 'utf8').replace(/\n/g, '\r\n'))
+    scaffold('lab', labOpts('line-fit'))
+    const course = readFileSync(file, 'utf8')
+    expect(course).toContain("lab'\r\n// ds-labs:lab-imports")
+    expect(course).toContain('    lineFit,\r\n    // ds-labs:lab-list')
+    expect(course.replace(/\r\n/g, '')).not.toMatch(/[\r\n]/)
+  })
+
   it('writes nothing on an unknown placeholder', () => {
     writeFileSync(join(fx, 'lab', 'lab.ts'), 'x %%foo%%\n')
     const before = read(dir, 'site/course.ts')
@@ -208,6 +245,16 @@ describe('scaffold CLI', () => {
     expect(existsSync(join(tmp, 'x'))).toBe(false)
     expect(run('bogus').status).toBe(1)
     expect(run().status).toBe(1)
+  })
+
+  it('succeeds with exit 0 and prints created paths', () => {
+    const dir = join(tmp, 'my course')
+    const r = run('course', '--dir', dir, '--course', 'demo-kurs', '--title-de', 'Demo DE', '--title-en', 'Demo EN', '--templates', fx)
+    expect(r.status, r.stderr).toBe(0)
+    const lines = r.stdout.trim().split(/\r?\n/)
+    expect(lines.length).toBeGreaterThan(5)
+    expect(lines.some((l) => l.endsWith('package.json'))).toBe(true)
+    for (const l of lines) expect(existsSync(l)).toBe(true)
   })
 
   it('exits 1 on validation errors (invalid id) without writing', () => {

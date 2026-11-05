@@ -3,9 +3,9 @@
 //   node scripts/sync-plugin-version.mjs           copy plugin/package.json version into both manifests
 //   node scripts/sync-plugin-version.mjs --check   exit 1 and list mismatches
 // Test hook: --root <dir> reads/writes below <dir> instead of the repository root.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -80,6 +80,15 @@ function main(argv) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isEntryPoint()) {
   process.exitCode = main(process.argv.slice(2))
 }

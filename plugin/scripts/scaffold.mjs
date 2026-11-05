@@ -9,14 +9,22 @@
 // Exit codes: 0 ok (created paths printed), 1 usage/validation error (one line on
 // stderr, nothing written).
 import {
-  existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync,
+  existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync,
 } from 'node:fs'
 import { dirname, extname, join, resolve } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 
-const ID_RE = /^[a-z][a-z0-9-]{1,40}$/
+const ID_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
+const RESERVED_WORDS = new Set([
+  'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
+  'else', 'enum', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in',
+  'instanceof', 'new', 'null', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof',
+  'var', 'void', 'while', 'with', 'yield', 'let', 'static', 'implements', 'interface', 'package',
+  'private', 'protected', 'public', 'await', 'async', 'of', 'as', 'from', 'get', 'set', 'type',
+  'undefined', 'NaN', 'Infinity', 'arguments', 'eval',
+])
 const KNOWN_PLACEHOLDER_RE =
   /%%(course|courseTitleDe|courseTitleEn|topic|topicTitleDe|topicTitleEn|frameworkVersion|year)%%/g
 const ANY_PLACEHOLDER_RE = /%%[A-Za-z]+%%/
@@ -43,8 +51,8 @@ function fail(message) {
 }
 
 function checkId(value, label) {
-  if (typeof value !== 'string' || !ID_RE.test(value)) {
-    fail(`invalid id for ${label}: ${JSON.stringify(value)} (use ${ID_RE})`)
+  if (typeof value !== 'string' || value.length < 2 || value.length > 41 || !ID_RE.test(value)) {
+    fail(`invalid id for ${label}: ${JSON.stringify(value)} (2-41 chars, lowercase letters, digits, single dashes inside)`)
   }
 }
 
@@ -227,6 +235,10 @@ export function scaffold(kind, opts = {}) {
     year,
   })
   const name = camelCase(opts.topic)
+  if (RESERVED_WORDS.has(name)) fail(`topic "${opts.topic}" maps to the reserved word "${name}"; choose another id`)
+  if (new RegExp('\\blab as ' + name + '\\b').test(courseText)) {
+    fail(`site/course.ts already imports an identifier "${name}"; choose another topic id`)
+  }
   let updated = insertBeforeMarker(
     courseText,
     IMPORT_MARKER,
@@ -240,9 +252,9 @@ export function scaffold(kind, opts = {}) {
 }
 
 const OPTIONS = {
-  course: { required: ['dir', 'course', 'title-de', 'title-en'], optional: ['packs'] },
-  intern: { required: ['dir', 'course'], optional: [] },
-  lab: { required: ['dir', 'topic', 'title-de', 'title-en'], optional: [] },
+  course: { required: ['dir', 'course', 'title-de', 'title-en'], optional: ['packs', 'templates'] },
+  intern: { required: ['dir', 'course'], optional: ['templates'] },
+  lab: { required: ['dir', 'topic', 'title-de', 'title-en'], optional: ['templates'] },
 }
 
 function parseArgs(argv) {
@@ -268,6 +280,7 @@ function parseArgs(argv) {
       titleDe: values['title-de'],
       titleEn: values['title-en'],
       packs: values.packs,
+      templatesDir: values.templates,
     },
   }
 }
@@ -285,6 +298,15 @@ function main(argv) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isEntryPoint()) {
   process.exitCode = main(process.argv.slice(2))
 }
