@@ -44,8 +44,10 @@ describe('plugin manifests', () => {
 
   it('every skill has name and description frontmatter and no allowed-tools', () => {
     const skills = join(pluginDir, 'skills')
-    if (!existsSync(skills)) return
-    for (const d of readdirSync(skills, { withFileTypes: true }).filter((e) => e.isDirectory())) {
+    expect(existsSync(skills), 'plugin/skills exists').toBe(true)
+    const dirs = readdirSync(skills, { withFileTypes: true }).filter((e) => e.isDirectory())
+    expect(dirs.length).toBeGreaterThan(0)
+    for (const d of dirs) {
       const fm = frontmatter(join(skills, d.name, 'SKILL.md'))
       expect(fm, d.name).toMatch(/^name:\s*\S/m)
       expect(fm, d.name).toMatch(/^description:\s*\S/m)
@@ -55,8 +57,10 @@ describe('plugin manifests', () => {
 
   it('every agent file has name and description frontmatter', () => {
     const agents = join(pluginDir, 'agents')
-    if (!existsSync(agents)) return
-    for (const f of readdirSync(agents).filter((n) => n.endsWith('.md'))) {
+    expect(existsSync(agents), 'plugin/agents exists').toBe(true)
+    const files = readdirSync(agents).filter((n) => n.endsWith('.md'))
+    expect(files.length).toBeGreaterThan(0)
+    for (const f of files) {
       const fm = frontmatter(join(agents, f))
       expect(fm, f).toMatch(/^name:\s*\S/m)
       expect(fm, f).toMatch(/^description:\s*\S/m)
