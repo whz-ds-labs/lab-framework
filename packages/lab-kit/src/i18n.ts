@@ -91,7 +91,8 @@ export function translate(l: Lang, key: string, vars?: Record<string, string | n
   const cat = dot > 0 ? catalogs[key.slice(0, dot)]?.[l] : undefined
   const raw = (cat ? lookup(cat, key.slice(dot + 1)) : undefined) ?? key
   if (!vars) return raw
-  return raw.replace(/\{(\w+)\}/g, (m, name: string) => (name in vars ? String(vars[name]) : m))
+  return raw.replace(/\{(\w+)\}/g, (m, name: string) =>
+    Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : m)
 }
 
 /** `t` without scope takes full keys; with `scope`, `t('a.b')` reads `<scope>.a.b` (lab code only). */

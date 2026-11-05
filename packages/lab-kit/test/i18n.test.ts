@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { catalogKeys, lookup, placeholderNames } from '../src/catalog'
 import { localized, registerMessages, setLang, toggleLang, translate, useI18n } from '../src/i18n'
 
@@ -40,6 +40,10 @@ describe('translate', () => {
     expect(translate('de', 'demo.a.b', { name: 'X' })).toBe('Hallo X')
     expect(translate('en', 'demo.a.b', { name: 'X' })).toBe('Hello X')
     expect(translate('de', 'demo.a.b', {})).toBe('Hallo {name}')
+  })
+  it('ignores inherited keys of vars', () => {
+    registerMessages('demo', { de: { p: 'x {toString}' }, en: { p: 'x {toString}' } })
+    expect(translate('de', 'demo.p', {})).toBe('x {toString}')
   })
   it('returns the key when missing (key, scope or language)', () => {
     expect(translate('en', 'demo.missing')).toBe('demo.missing')
@@ -83,5 +87,56 @@ describe('toggleLang / setLang', () => {
     toggleLang()
     expect(location.hash).toContain('lang=de')
     expect(localStorage.getItem('ds-labs-lang')).toBe('de')
+  })
+})
+
+describe('initial language precedence', () => {
+  // The language ref is created once per module load: drop it from the shared state and re-import.
+  async function freshLang(): Promise<string> {
+    const root = (globalThis as unknown as Record<symbol, Record<string, unknown>>)[Symbol.for('whz-ds-labs.lab-kit.state')]
+    delete root?.lang
+    delete root?.catalogs
+    vi.resetModules()
+    const mod = await import('../src/i18n')
+    return mod.useI18n().lang.value
+  }
+
+  it('defaults to de', async () => {
+    expect(await freshLang()).toBe('de')
+  })
+  it('uses localStorage when the URL has no lang', async () => {
+    localStorage.setItem('ds-labs-lang', 'en')
+    expect(await freshLang()).toBe('en')
+  })
+  it('prefers the hash query over localStorage and persists it', async () => {
+    localStorage.setItem('ds-labs-lang', 'de')
+    history.replaceState(null, '', '#/lab?lang=en')
+    expect(await freshLang()).toBe('en')
+    expect(localStorage.getItem('ds-labs-lang')).toBe('en')
+  })
+  it('uses the search part when the hash has no lang', async () => {
+    history.replaceState(null, '', '/?lang=en#/')
+    try {
+      expect(await freshLang()).toBe('en')
+      expect(localStorage.getItem('ds-labs-lang')).toBe('en')
+    } finally {
+      history.replaceState(null, '', '/#/')
+    }
+  })
+  it('prefers the hash query over the search part', async () => {
+    history.replaceState(null, '', '/?lang=de#/lab?lang=en')
+    try {
+      expect(await freshLang()).toBe('en')
+    } finally {
+      history.replaceState(null, '', '/#/')
+    }
+  })
+  it('ignores an unknown lang and falls back to localStorage, then de', async () => {
+    history.replaceState(null, '', '#/lab?lang=xx')
+    localStorage.setItem('ds-labs-lang', 'en')
+    expect(await freshLang()).toBe('en')
+    localStorage.clear()
+    expect(await freshLang()).toBe('de')
+    expect(localStorage.getItem('ds-labs-lang')).toBeNull()
   })
 })
