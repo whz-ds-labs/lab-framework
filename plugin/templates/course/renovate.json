@@ -1,0 +1,11 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "groupName": "whz-ds-labs framework",
+      "matchPackageNames": ["@whz-ds-labs/*"]
+    }
+  ]
+}

@@ -22,8 +22,9 @@ export function findForbidden(files) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const tracked = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
-    .split('\n')
+  // -z: NUL-separated and unquoted; without it git escapes non-ASCII names ("Folie\303\244.pdf").
+  const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+    .split('\0')
     .filter((line) => line.length > 0)
   const bad = findForbidden(tracked)
   if (bad.length > 0) {

@@ -151,7 +151,7 @@ watch(
           type="button"
           class="ds-btn"
           data-verify-unit="lang-toggle"
-          :aria-label="t('kit.lang.toggle')"
+          :aria-label="`${lang === 'de' ? 'EN' : 'DE'} – ${t('kit.lang.toggle')}`"
           @click="toggleLang"
         >
           {{ lang === 'de' ? 'EN' : 'DE' }}
