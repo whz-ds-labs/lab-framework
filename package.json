@@ -17,7 +17,7 @@
     "build": "npm run build -w @whz-ds-labs/lab-kit && npm run build -w @whz-ds-labs/ui",
     "typecheck": "vue-tsc --noEmit -p packages/lab-kit/tsconfig.json && vue-tsc --noEmit -p packages/ui/tsconfig.json",
     "test": "vitest run",
-    "lint:css": "stylelint \"packages/ui/src/**/*.{css,vue}\"",
+    "lint:css": "stylelint --allow-empty-input \"packages/ui/src/**/*.{css,vue}\"",
     "guard": "node scripts/check-no-materials.mjs",
     "check:versions": "node scripts/sync-plugin-version.mjs --check",
     "integration": "node scripts/integration.mjs",

@@ -27,4 +27,24 @@ describe.skipIf(!built)('entries import in plain Node (no DOM)', () => {
     expect(r.stderr).toBe('')
     expect(r.status).toBe(0)
   })
+
+  it('dist/stylelint/index.js', () => {
+    const r = importInNode('dist/stylelint/index.js')
+    expect(r.stderr).toBe('')
+    expect(r.status).toBe(0)
+  })
+
+  it('dist/stylelint/config.js points at the built plugin entry', () => {
+    const url = pathToFileURL(join(packageRoot, 'dist/stylelint/config.js')).href
+    const r = spawnSync(
+      process.execPath,
+      ['--input-type=module', '-e', `const { default: c } = await import(${JSON.stringify(url)}); console.log(JSON.stringify(c))`],
+      { encoding: 'utf8' },
+    )
+    expect(r.stderr).toBe('')
+    expect(r.status).toBe(0)
+    const config = JSON.parse(r.stdout) as { plugins: string[]; rules: Record<string, unknown> }
+    expect(config.plugins).toEqual([join(packageRoot, 'dist/stylelint/index.js')])
+    expect(Object.keys(config.rules)).toEqual(['ds-labs/no-separator-lines', 'ds-labs/color-tokens-only'])
+  })
 })

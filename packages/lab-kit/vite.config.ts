@@ -5,12 +5,13 @@ const exclude = ['plugin/templates/**', 'examples/**', '**/dist/**', '**/node_mo
 export default defineConfig({
   build: {
     lib: {
-      // Later tasks add: stylelint/index, stylelint/config.
       entry: {
         index: 'src/index.ts',
         worker: 'src/worker.ts',
         'testing/index': 'src/testing/index.ts',
         'testing/e2e': 'src/testing/e2e.ts',
+        'stylelint/index': 'src/stylelint/index.ts',
+        'stylelint/config': 'src/stylelint/config.ts',
       },
       formats: ['es'],
     },

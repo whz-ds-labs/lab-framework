@@ -1,0 +1,8 @@
+hr {
+  margin: 0;
+}
+
+.section hr.thin,
+.other {
+  margin: 0;
+}
