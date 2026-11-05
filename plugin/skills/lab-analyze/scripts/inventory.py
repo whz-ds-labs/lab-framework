@@ -18,10 +18,13 @@ from pathlib import Path
 
 MAX_HEADINGS = 80  # per file; the rest is summarised as a count
 MAX_TEXT = 100  # characters per printed heading
+# Numbered or colon-led headings only ("Aufgabe 3", "Exercise 2.1", "Übung: ..."); bare words
+# such as "problem" or "lab" appear in ordinary prose headings and would flood the list.
 EXERCISE_RE = re.compile(
-    r"\b(aufgabe|aufgaben|übung|uebung|übungen|exercise|exercises|task|problem|praktikum|lab)\b",
+    r"\b(aufgabe|aufgaben|übung|uebung|übungen|exercise|exercises|task|tasks)\b\s*(?:[:.\-–]|\d)",
     re.IGNORECASE,
 )
+SKIP_DIRS = {"node_modules", "__pycache__", "venv", "site-packages"}
 IMPORT_FALLBACK_RE = re.compile(r"^\s*(?:from\s+([\w.]+)\s+import|import\s+([\w., ]+))", re.MULTILINE)
 
 
@@ -46,6 +49,17 @@ def imports_of(source: str) -> set[str]:
             else:
                 found.update(p.strip().split(" ")[0].split(".")[0] for p in m.group(2).split(","))
     return {name for name in found if name}
+
+
+def skipped(rel_parts: tuple[str, ...]) -> bool:
+    return any(part.startswith(".") or part in SKIP_DIRS for part in rel_parts[:-1])
+
+
+def find_files(root: Path, suffix: str):
+    """Files below root, skipping hidden dirs (.git, .venv, .ipynb_checkpoints) and vendor dirs."""
+    for path in root.rglob(f"*{suffix}"):
+        if path.is_file() and not skipped(path.relative_to(root).parts):
+            yield path
 
 
 def report_notebook(path: Path, root: Path) -> None:
@@ -131,8 +145,8 @@ def main(argv: list[str]) -> int:
     if not root.is_dir():
         print(f"not a directory: {root}", file=sys.stderr)
         return 2
-    notebooks = sorted(p for p in root.rglob("*.ipynb") if ".ipynb_checkpoints" not in p.parts)
-    pdfs = sorted(root.rglob("*.pdf"))
+    notebooks = sorted(find_files(root, ".ipynb"))
+    pdfs = sorted(find_files(root, ".pdf"))
     if not notebooks and not pdfs:
         print(f"no materials found in {root}")
         return 0

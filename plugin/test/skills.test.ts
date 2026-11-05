@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -21,6 +21,8 @@ function walk(dir: string): string[] {
   }
   return out
 }
+
+const FORBIDDEN = ['C:\\Users', '/Users/', '@gmail.com', 'AlexFractalNode', 'Claude Wiki']
 
 const TEXT = /\.(md|ts|vue|js|mjs|json|py|toml|yml|yaml|css|html|txt|lock)$|(^|[\/])_[^\/]+$|LICENSE$/
 
@@ -44,8 +46,14 @@ describe('skills and agents', () => {
     }
   })
 
+  it('the forbidden needles really match (positive check)', () => {
+    const samples = ['C:\\Users\\x', '/Users/x', 'a@gmail.com', 'AlexFractalNode', 'Claude Wiki']
+    FORBIDDEN.forEach((needle, i) => expect(samples[i]!.includes(needle), needle).toBe(true))
+    expect(FORBIDDEN[0]).toHaveLength(8)
+  })
+
   it('no file under plugin/ contains private paths, addresses or names', () => {
-    const forbidden = ['C:\Users', '/Users/', '@gmail.com', 'AlexFractalNode', 'Claude Wiki']
+    const forbidden = FORBIDDEN
     // plugin/test is skipped: these tests name the forbidden strings themselves.
     const testDir = join(pluginDir, 'test')
     for (const f of walk(pluginDir).filter((p) => !p.startsWith(testDir) && TEXT.test(p) && statSync(p).isFile())) {
@@ -87,6 +95,31 @@ describe('skills and agents', () => {
       expect(r.error, String(r.error)).toBeUndefined()
       expect(r.status, r.stderr).toBe(0)
       expect(r.stdout).toContain('no materials found')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }, 120_000)
+
+  it('inventory.py skips hidden and vendor dirs and only flags real exercise headings', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ds-labs-inventory-'))
+    const nb = (heading: string) =>
+      JSON.stringify({
+        nbformat: 4,
+        nbformat_minor: 5,
+        metadata: {},
+        cells: [{ cell_type: 'markdown', metadata: {}, source: [`# ${heading}`] }],
+      })
+    try {
+      for (const d of ['.venv', 'node_modules', '.git', '__pycache__', 'real']) mkdirSync(join(dir, d))
+      for (const d of ['.venv', 'node_modules', '.git', '__pycache__']) writeFileSync(join(dir, d, 'skipme.ipynb'), nb('Aufgabe 9'))
+      writeFileSync(join(dir, 'real', 'a.ipynb'), nb('Aufgabe 2: Gerade'))
+      writeFileSync(join(dir, 'real', 'b.ipynb'), nb('Problem der Woche und Labor'))
+      const script = join(pluginDir, 'skills', 'lab-analyze', 'scripts', 'inventory.py')
+      const r = spawnSync('uv', ['run', '--native-tls', '--with', 'nbformat', '--with', 'pypdf', 'python', script, dir], { encoding: 'utf8' })
+      expect(r.status, r.stderr).toBe(0)
+      expect(r.stdout).not.toContain('skipme')
+      expect(r.stdout).toContain('2 notebook(s)')
+      expect(r.stdout).toMatch(/exercises by heading keyword \(1\)/)
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }

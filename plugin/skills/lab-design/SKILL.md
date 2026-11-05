@@ -115,6 +115,11 @@ Check `node_modules/@whz-ds-labs/ui` types for props before use; do not guess.
 - **375 px:** `expectNoHorizontalOverflow(page, 375)` in each tool's e2e test: no horizontal scrolling on a phone.
 - **axe:** `expectNoA11yViolations(page)`: no WCAG AA violations.
 - **Keyboard:** every interactive element reachable and operable by keyboard; visible focus.
-- **Screenshots:** `DESIGN_SHOTS=1 npx playwright test design-shots` writes `design-shots/*.png` at 1280 and 375 px for the `lab-design-reviewer` agent.
+- **Screenshots:** `DESIGN_SHOTS=1 npx playwright test design-shots` writes `design-shots/*.png` at 1280 and 375 px for the `lab-design-reviewer` agent. In Windows PowerShell 5 use two commands, one per line:
+
+  ```
+  $env:DESIGN_SHOTS=1
+  npx playwright test design-shots
+  ```
 
 Helpers come from `@whz-ds-labs/lab-kit/testing/e2e`.

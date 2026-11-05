@@ -30,6 +30,11 @@ Run one command each and report a short pass/fail list. Name the fix for every f
 | uv | `uv --version` | any current version | `winget install --id astral-sh.uv` on Windows; the installer from docs.astral.sh/uv on macOS and Linux |
 | superpowers | check the available skills for `superpowers:brainstorming` | installed | see below |
 
+Which failures are hard depends on the mode:
+
+- **With GitHub repos (default):** all four checks must pass.
+- **Local-only (the user declined GitHub repos) and `packs=` mode:** `gh` is not needed. A failing `gh auth status` is a warning only and must not block. Node, uv and superpowers remain hard.
+
 If superpowers is missing, tell the user to run this in Claude Code (verified against the superpowers README):
 
 ```
@@ -56,7 +61,7 @@ gh repo create whz-ds-labs/<course> --public
 gh repo create whz-ds-labs/<course>-intern --private
 ```
 
-`<course>` is public and never contains course material. `<course>-intern` is private and holds `materials/` and `docs/`. Never make the intern repo public. If the repos already exist, clone or reuse them side by side. If the user does not want GitHub repos now, work in local folders and say so.
+`<course>` is public and never contains course material. `<course>-intern` is private and holds `materials/` and `docs/`. Never make the intern repo public. These commands only create empty remote repos; the local folders are made in step 4 and linked in step 4b. If the repos already exist, clone them or reuse existing clones side by side (then skip the matching scaffold and git setup). If the user does not want GitHub repos now, work in local folders and say so.
 
 Never push, create or delete repos, or merge without the user's explicit approval in chat.
 
@@ -72,7 +77,20 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.mjs" lab --dir "<path>/<course>" --
 
 The script prints the created paths and exits 1 with one line on stderr when an id or title is invalid (nothing is written then). The lab appears in `site/course.ts` as `<camelTopic>Lab`.
 
-Set the git identity locally in each new repo if none is configured: the user's GitHub noreply address (`<id>+<user>@users.noreply.github.com`), never a private address. Ask for it if you cannot read it from `gh api user`.
+## Step 4b: Git (ask first)
+
+The scaffold does not run `git init`, and `gh repo create` without `--clone` leaves the new folders unlinked to their GitHub repos. Ask the user whether to set up git in the new folders now. If yes, in each new folder (`<course>` and `<course>-intern`), one command at a time:
+
+```
+git init -b main
+git config --local user.name "<login>"
+git config --local user.email "<id>+<login>@users.noreply.github.com"
+git remote add origin https://github.com/whz-ds-labs/<repo>.git
+```
+
+- Identity: `<login>` comes from `gh api user --jq .login` and `<id>` from `gh api user --jq .id`. Use `git config --local` only. Never run `git config --global` or `git config --list`, never read or print an address that is already configured, and never mention one. If `gh` is unavailable, ask the user for their GitHub noreply address (`<id>+<login>@users.noreply.github.com`).
+- Add the `origin` remote only for a repo that was created in step 3 (or already exists); in local-only mode skip it.
+- Do not commit, push, or set upstream without the user's explicit approval in chat.
 
 ## Step 5: Install and smoke test the new course repo
 
