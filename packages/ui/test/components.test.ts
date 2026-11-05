@@ -33,6 +33,7 @@ describe('exports', () => {
     for (const name of [
       'PlotFrame', 'PointLayer', 'GridLayer', 'RegionLayer', 'LinearSlider', 'RootSlider',
       'BarList', 'Formula', 'StatusPanel', 'UrlNotice', 'RefBadge',
+      'ScenarioBar', 'ScenarioNote', 'ScenarioArea', 'HelpDrawer',
     ]) {
       expect(ui, name).toHaveProperty(name)
     }
