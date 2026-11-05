@@ -29,7 +29,7 @@ const themed: [string, string, string][] = [
   ['--ds-error-bg', '#fdecea', '#3a1f1d'],
   ['--ds-ok', '#1d6b3a', '#6fcf97'],
   ['--ds-warn', '#8a5a00', '#e6c35c'],
-  ['--ds-input-border', '#8a93a3', '#5b6577'],
+  ['--ds-input-border', '#7d8594', '#6b7485'],
   ['--ds-plot-axis', '#5b6577', '#8d97a8'],
   ['--ds-plot-grid', '#d9dde5', '#2c3442'],
   ['--ds-points', '#111827', '#ffffff'],
@@ -59,7 +59,7 @@ const fixed: [string, string][] = [
 
 function channel(v: number): number {
   const c = v / 255
-  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 }
 
 function luminance(hex: string): number {
@@ -111,6 +111,22 @@ describe('design tokens v0', () => {
 
     it.each(surfaces)('--ds-text-muted on %s is >= 4.5', (s) => {
       expect(contrast(t['--ds-text-muted']!, t[s]!)).toBeGreaterThanOrEqual(4.5)
+    })
+
+    it.each(surfaces)('--ds-input-border on %s is >= 3', (s) => {
+      expect(contrast(t['--ds-input-border']!, t[s]!)).toBeGreaterThanOrEqual(3)
+    })
+
+    it.each(surfaces)('--ds-focus on %s is >= 3', (s) => {
+      expect(contrast(t['--ds-focus']!, t[s]!)).toBeGreaterThanOrEqual(3)
+    })
+
+    it('--ds-accent-contrast on --ds-accent is >= 4.5', () => {
+      expect(contrast(t['--ds-accent-contrast']!, t['--ds-accent']!)).toBeGreaterThanOrEqual(4.5)
+    })
+
+    it('--ds-error on --ds-error-bg is >= 4.5', () => {
+      expect(contrast(t['--ds-error']!, t['--ds-error-bg']!)).toBeGreaterThanOrEqual(4.5)
     })
 
     it('--ds-accent on --ds-surface-card is >= 3', () => {
