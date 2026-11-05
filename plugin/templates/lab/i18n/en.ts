@@ -9,6 +9,7 @@ export const en: Catalog = {
     intercept: 'Intercept',
     r2: 'Coefficient of determination R²',
     ci: 'Bootstrap interval of the slope (95 %)',
+    ciError: 'Unavailable (background computation not possible).',
     error: {
       TOO_FEW_POINTS: 'At least two points are needed.',
       DEGENERATE_X: 'All x values are equal.',

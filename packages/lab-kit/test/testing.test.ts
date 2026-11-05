@@ -112,6 +112,14 @@ describe('loadGolden', () => {
     expect(loadGolden(pathToFileURL(dir + '/'), 'case')).toEqual({ x: [1, 2] })
   })
 
+  it('accepts URL-like objects and the happy-dom URL', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'golden-'))
+    writeFileSync(join(dir, 'case.json'), JSON.stringify({ x: [3] }))
+    const href = pathToFileURL(dir + '/').href
+    expect(loadGolden({ href }, 'case')).toEqual({ x: [3] })
+    expect(loadGolden(new globalThis.URL(href), 'case')).toEqual({ x: [3] })
+  })
+
   it('throws for a missing file', () => {
     expect(() => loadGolden(tmpdir(), 'does-not-exist-xyz')).toThrow()
   })

@@ -23,6 +23,7 @@ const fit = computed(() => {
 })
 
 const ci = ref<{ lo: number; hi: number } | null>(null)
+const ciFailed = ref(false)
 let ciRun = 0
 
 // The bootstrap interval runs in a worker; a newer run cancels the older one (its promise rejects with CANCELLED).
@@ -31,15 +32,21 @@ watch(
   (pts) => {
     const run = ++ciRun
     ci.value = null
+    ciFailed.value = false
     if (!fit.value.ok) return
-    lineClient
-      .start({ kind: 'bootstrap', points: pts, B: 500, seed: props.state.seed })
-      .promise.then((r) => {
-        if (run === ciRun) ci.value = r
-      })
-      .catch(() => {
-        // CANCELLED by a newer run, or no worker available: the interval stays hidden.
-      })
+    try {
+      lineClient
+        .start({ kind: 'bootstrap', points: pts, B: 500, seed: props.state.seed })
+        .promise.then((r) => {
+          if (run === ciRun) ci.value = r
+        })
+        .catch((e: unknown) => {
+          // CANCELLED means a newer run replaced this one; anything else (e.g. no worker) is shown.
+          if (run === ciRun && !(e instanceof LabError && e.code === 'CANCELLED')) ciFailed.value = true
+        })
+    } catch {
+      ciFailed.value = true // a synchronous throw of start()
+    }
   },
   { immediate: true },
 )
@@ -70,7 +77,11 @@ function setN(n: number): void {
       <dd data-testid="intercept">{{ fmt(lang, fit.intercept, 3) }}</dd>
       <dt>{{ t('line.r2') }}</dt>
       <dd data-testid="r2">{{ fmt(lang, fit.r2, 3) }}</dd>
-      <template v-if="ci">
+      <template v-if="ciFailed">
+        <dt>{{ t('line.ci') }}</dt>
+        <dd data-testid="ci-error">{{ t('line.ciError') }}</dd>
+      </template>
+      <template v-else-if="ci">
         <dt>{{ t('line.ci') }}</dt>
         <dd data-testid="ci">[{{ fmt(lang, ci.lo, 3) }}; {{ fmt(lang, ci.hi, 3) }}]</dd>
       </template>

@@ -1,11 +1,13 @@
-// @vitest-environment node
-// (happy-dom replaces the URL class, which loadGolden cannot turn into a file path)
+// Not `new URL('../golden/', import.meta.url)`: in the happy-dom environment Vite rewrites that pattern into a dev-server URL.
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { expectClose, loadGolden } from '@whz-ds-labs/lab-kit/testing'
 import { describe, it } from 'vitest'
 import { fitLine, type Point } from '../../core/fit'
 
 // The oracle is golden/make_golden.py (scikit-learn); `npm run golden` regenerates the JSON.
-const golden = loadGolden(new URL('../golden/', import.meta.url), 'fit') as {
+const GOLDEN_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'golden')
+const golden = loadGolden(GOLDEN_DIR, 'fit') as {
   cases: Record<string, { intercept: number; slope: number; r2: number; points: Point[] }>
 }
 

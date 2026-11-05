@@ -9,6 +9,7 @@ export const de: Catalog = {
     intercept: 'Achsenabschnitt',
     r2: 'Bestimmtheitsmaß R²',
     ci: 'Bootstrap-Intervall der Steigung (95 %)',
+    ciError: 'Nicht verfügbar (Hintergrundrechnung nicht möglich).',
     error: {
       TOO_FEW_POINTS: 'Mindestens zwei Punkte nötig.',
       DEGENERATE_X: 'Alle x-Werte sind gleich.',

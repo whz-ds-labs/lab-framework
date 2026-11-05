@@ -8,8 +8,9 @@ import type { LabDefinition } from '../define'
 
 /** Parses `<dir>/<name>.json` (e.g. produced by a Python golden script). `dir` is a path or a `file:` URL. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function loadGolden(dir: string | URL, name: string): any {
-  const base = typeof dir === 'string' ? dir : fileURLToPath(dir)
+export function loadGolden(dir: string | URL | { href: string }, name: string): any {
+  // Via the href string: a URL object of another realm (happy-dom replaces the global URL) is not accepted by Node.
+  const base = typeof dir === 'string' ? dir : fileURLToPath(String(dir.href))
   return JSON.parse(readFileSync(join(base, `${name}.json`), 'utf8'))
 }
 

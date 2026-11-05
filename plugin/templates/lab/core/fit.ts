@@ -39,6 +39,8 @@ export function fitLine(points: Point[]): { intercept: number; slope: number; r2
     const e = p.y - (intercept + slope * p.x)
     ssRes += e * e
   }
-  const r2 = syy === 0 ? 1 : 1 - ssRes / syy
+  // Exact comparison, like for x: for y = 0.1 the centered sum syy is rounding noise (about 6e-34), not 0.
+  const y0 = points[0]!.y
+  const r2 = points.every((p) => p.y === y0) ? 1 : 1 - ssRes / syy
   return { intercept, slope, r2 }
 }

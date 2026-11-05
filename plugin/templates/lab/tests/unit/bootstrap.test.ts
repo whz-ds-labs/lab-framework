@@ -1,11 +1,13 @@
-// @vitest-environment node
-// (happy-dom replaces the URL class, which loadGolden cannot turn into a file path)
+// Not `new URL('../golden/', import.meta.url)`: in the happy-dom environment Vite rewrites that pattern into a dev-server URL.
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { loadGolden } from '@whz-ds-labs/lab-kit/testing'
 import { describe, expect, it } from 'vitest'
 import { bootstrapSlope } from '../../core/bootstrap'
 import type { Point } from '../../core/fit'
 
-const golden = loadGolden(new URL('../golden/', import.meta.url), 'fit') as {
+const GOLDEN_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'golden')
+const golden = loadGolden(GOLDEN_DIR, 'fit') as {
   cases: Record<string, { points: Point[] }>
 }
 
