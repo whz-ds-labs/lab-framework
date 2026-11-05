@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain .mjs script without type declarations
-import { classifyViewResult, planPublish } from '../scripts/publish.mjs'
+import { classifyViewResult, planPublish, viewEnv } from '../scripts/publish.mjs'
 
 const versions = { '@whz-ds-labs/lab-kit': '0.1.0', '@whz-ds-labs/ui': '0.1.0' }
 const both = new Set(['@whz-ds-labs/lab-kit@0.1.0', '@whz-ds-labs/ui@0.1.0'])
@@ -46,9 +46,39 @@ describe('classifyViewResult', () => {
     }
   })
 
+  it('reads the E404 JSON from stderr when stdout is empty', () => {
+    const err = JSON.stringify({ error: { code: 'E404' } })
+    expect(classifyViewResult(1, '', err)).toBe('missing')
+    expect(classifyViewResult(1, '  \n', err)).toBe('missing')
+  })
+
+  it('treats E401 as error (also on stderr)', () => {
+    const err = JSON.stringify({ error: { code: 'E401' } })
+    expect(classifyViewResult(1, '', err)).toBe('error')
+    expect(classifyViewResult(1, err)).toBe('error')
+  })
+
+  it('treats an E404 object as missing even with exit 0', () => {
+    expect(classifyViewResult(0, JSON.stringify({ error: { code: 'E404' } }))).toBe('missing')
+  })
+
+  it('trusts a bare version string only with exit 0', () => {
+    expect(classifyViewResult(0, '', '"0.1.0"')).toBe('published')
+    expect(classifyViewResult(1, '"0.1.0"')).toBe('error')
+    expect(classifyViewResult(0, '""')).toBe('error')
+  })
+
   it('treats unparsable output and exit 0 without version as error', () => {
     expect(classifyViewResult(1, 'boom')).toBe('error')
     expect(classifyViewResult(1, '')).toBe('error')
     expect(classifyViewResult(0, '')).toBe('error')
+  })
+})
+
+describe('viewEnv', () => {
+  it('blanks NODE_AUTH_TOKEN and keeps the rest', () => {
+    const env = viewEnv({ NODE_AUTH_TOKEN: 'xxx-placeholder', PATH: '/bin' })
+    expect(env.NODE_AUTH_TOKEN).toBe('')
+    expect(env.PATH).toBe('/bin')
   })
 })

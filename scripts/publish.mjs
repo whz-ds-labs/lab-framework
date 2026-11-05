@@ -1,9 +1,17 @@
 // Idempotent release step, run by CI after `changesets/action` found no pending changesets.
 //   node scripts/publish.mjs
 // Publishes @whz-ds-labs/lab-kit, then @whz-ds-labs/ui (npm Trusted Publishing, provenance),
-// then creates and pushes the tag v<version> if it exists neither locally nor on origin.
+// then pushes the tag v<version> if origin lacks it (creating it locally first if needed).
 // Safe to re-run: published versions and existing tags are skipped. Any registry error other
 // than "not found" aborts without publishing.
+//
+// Task 20 must observe in the first real run (CI log of release.yml):
+//   1. `npm view` classification: both packages print "missing" (or "published" on a re-run),
+//      never "error" - i.e. the empty NODE_AUTH_TOKEN from viewEnv() avoids E401 and the E404
+//      JSON is recognized (stdout or stderr).
+//   2. OIDC publish: `npm publish --provenance` authenticates via Trusted Publishing without
+//      NPM_TOKEN (if it fails with an auth error, see the registry-url note in release.yml).
+//   3. Tag push: "tagged v<version>" appears and the tag exists on origin afterwards.
 import { spawnSync } from 'node:child_process'
 import { readFileSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -17,25 +25,41 @@ export const packages = [
   { name: '@whz-ds-labs/ui', dir: 'ui' },
 ]
 
-/** Classify the result of `npm view <name>@<version> version --json`. */
-export function classifyViewResult(exitCode, stdout) {
+/**
+ * Environment for `npm view`: setup-node's `registry-url` writes an .npmrc that sends
+ * ${NODE_AUTH_TOKEN} (a placeholder in CI), which would make the registry answer E401 even
+ * for public reads. An empty value keeps the .npmrc interpolation valid but sends no token.
+ */
+export function viewEnv(env = process.env) {
+  return { ...env, NODE_AUTH_TOKEN: '' }
+}
+
+/**
+ * Classify the result of `npm view <name>@<version> version --json`.
+ * npm may print the JSON error object to stdout or stderr, so stdout is used if non-empty,
+ * otherwise stderr. An E404 error object means "missing" whatever the exit code; any other
+ * error object (E401, ENOTFOUND, ETIMEDOUT, ...) is "error". A bare version string counts as
+ * "published" only with exit 0; with a non-zero exit it is treated as "error" (conservative:
+ * never publish on an ambiguous answer).
+ */
+export function classifyViewResult(exitCode, stdout, stderr = '') {
+  const text = String(stdout ?? '').trim() || String(stderr ?? '').trim()
   let parsed
   try {
-    parsed = JSON.parse(String(stdout).trim())
+    parsed = JSON.parse(text)
   } catch {
     return 'error'
   }
-  if (exitCode === 0) {
-    return typeof parsed === 'string' && parsed !== '' ? 'published' : 'error'
+  if (parsed && typeof parsed === 'object') {
+    return parsed.error?.code === 'E404' ? 'missing' : 'error'
   }
-  const code = parsed && typeof parsed === 'object' ? parsed.error?.code : undefined
-  return code === 'E404' ? 'missing' : 'error'
+  return exitCode === 0 && typeof parsed === 'string' && parsed !== '' ? 'published' : 'error'
 }
 
 /**
  * @param {Record<string, string>} versions package name -> version
  * @param {Set<string>} published entries "<name>@<version>"
- * @param {Set<string>} tags existing tags (local or origin)
+ * @param {Set<string>} tags tags that exist on origin
  */
 export function planPublish(versions, published, tags) {
   const publish = packages
@@ -73,8 +97,8 @@ function main() {
   const published = new Set()
   for (const p of packages) {
     const spec = `${p.name}@${versions[p.name]}`
-    const res = run('npm', ['view', spec, 'version', '--json'])
-    const kind = classifyViewResult(res.status ?? 1, res.stdout ?? '')
+    const res = run('npm', ['view', spec, 'version', '--json'], { env: viewEnv() })
+    const kind = classifyViewResult(res.status ?? 1, res.stdout ?? '', res.stderr ?? '')
     if (kind === 'error') die(`cannot determine whether ${spec} is published, aborting:\n${res.stdout}${res.stderr}`)
     if (kind === 'published') published.add(spec)
     console.log(`${spec}: ${kind}`)
@@ -84,7 +108,6 @@ function main() {
   const tag = `v${version}`
   const local = run('git', ['tag', '--list', tag])
   if (local.status !== 0) die(`git tag --list failed:\n${local.stderr}`)
-  if (local.stdout.trim() === tag) tags.add(tag)
   const remote = run('git', ['ls-remote', '--tags', 'origin', `refs/tags/${tag}`])
   if (remote.status !== 0) die(`git ls-remote failed:\n${remote.stderr}`)
   if (remote.stdout.trim() !== '') tags.add(tag)
@@ -99,8 +122,8 @@ function main() {
   }
 
   if (plan.tag) {
-    // Reuse a local tag if only origin lacks it; otherwise create it.
-    if (!local.stdout.trim()) {
+    // Only origin decides: a tag that exists locally but not on origin is pushed as is.
+    if (local.stdout.trim() !== plan.tag) {
       const t = run('git', ['tag', '-a', plan.tag, '-m', `Release ${plan.tag}`])
       if (t.status !== 0) die(`git tag failed:\n${t.stderr}`)
     }
