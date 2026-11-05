@@ -46,7 +46,13 @@ Werkzeugansicht). Eine Werkzeug-Komponente folgt diesem Vertrag:
 
 ## Handbook / Handbuch
 
-- EN: [Architecture](../../docs/en/02-architecture.md), [Design v0](../../docs/en/03-design.md)
-- DE: [Architektur](../../docs/de/02-architecture.md), [Design v0](../../docs/de/03-design.md)
+- EN: [Architecture](https://github.com/whz-ds-labs/lab-framework/blob/main/docs/en/02-architecture.md), [Design v0](https://github.com/whz-ds-labs/lab-framework/blob/main/docs/en/03-design.md)
+- DE: [Architektur](https://github.com/whz-ds-labs/lab-framework/blob/main/docs/de/02-architecture.md), [Design v0](https://github.com/whz-ds-labs/lab-framework/blob/main/docs/de/03-design.md)
 
-Entry points / Einstiegspunkte: `.`, `/tokens.css`, `/style.css`.
+## Entry points / Einstiegspunkte
+
+| Import | EN | DE |
+|---|---|---|
+| `@whz-ds-labs/ui` | components, `createCourseApp`, `installKitMessages` | Komponenten, `createCourseApp`, `installKitMessages` |
+| `/tokens.css` | design tokens | Design-Tokens |
+| `/style.css` | base styles of the components | Basisstile der Komponenten |

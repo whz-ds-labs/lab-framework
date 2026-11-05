@@ -40,7 +40,7 @@ Das Plugin `ds-labs` bringt sechs Skills (`lab-start`, `lab-analyze`, `lab-build
 
 ## Das erste Lab mit Claude
 
-Öffne Claude Code in einem leeren Arbeitsordner und starte den geführten Ablauf:
+Öffne Claude Code in einem leeren Arbeitsordner (die beiden Repos entstehen als Unterordner darin) und starte den geführten Ablauf:
 
 ```
 /ds-labs:lab-start
@@ -91,6 +91,8 @@ git add -A
 git commit -m "chore: scaffold course"
 npm run dev
 ```
+
+Unter Linux installierst du den Browser stattdessen mit seinen Systembibliotheken: `npx playwright install --with-deps chromium`.
 
 `npm test` führt die Unit-Tests aus, `npm run test:py` die Python-Golden-Tests (braucht uv), `npm run test:e2e` die Browser-Tests (braucht einmalig den Chromium-Download), `npm run build` die Typprüfung und den Produktions-Build, `npm run dev` die lokale Seite.
 

@@ -58,7 +58,7 @@ The site uses hash routes, so it works on GitHub Pages without server rules:
 
 - `<lab>` and `<tool>` are the ids from the definitions.
 - `<parameters>` are the tool's own, short and stable parameter names.
-- `scenario=<id>` marks a ready-made state. As soon as the learner changes a parameter so that the state differs from the scenario, the parameter disappears again.
+- `scenario=<id>` marks a ready-made state. If the learner changes a parameter so that the state differs from the scenario, `scenario=<id>` stays in the address; the page shows a "changed" note with a button to restore the scenario. The parameter is removed only when the note is closed.
 - `lang` selects the interface language.
 
 A link with a scenario is a stable teaching link: it sets all parameters and may run a one-off action, for example a bootstrap.

@@ -25,7 +25,7 @@ Die Entscheidungen hinter DS Labs mit ihren Gründen und den verworfenen Alterna
 | F4 | Veröffentlichen nur aus GitHub Actions per Trusted Publishing mit Provenance; ein einmaliger manueller Platzhalter `0.0.0` je Paket | npm erlaubt einen Trusted Publisher erst für existierende Pakete |
 | F5 | Design v0 „Flächen“: Gliederung über Grauton-Flächen, Abstände und Pillen-Navigation; keine Trennlinien | Der Prof fand das alte Design unruhig mit vielen horizontalen Linien; Variante B gewann den Mockup-Vergleich |
 | F6 | Design-Regeln werden automatisch geprüft (stylelint, e2e) plus ein Design-Prüfer-Agent vor Releases | Regeln allein erodieren unbemerkt |
-| F7 | Code wird aus der bestehenden Lab-Sammlung **herausgelöst**, nicht neu geschrieben; die alte Sammlung bleibt bis zu ihrer eigenen Migration unverändert | Bewährter, getesteter Code; Migration ist ein eigenes Teilprojekt |
+| F7 | Code wird aus der bestehenden Lab-Sammlung **herausgelöst**, nicht neu geschrieben; die alte Sammlung bleibt bis zu ihrer eigenen Migration unverändert | Bewährter, getesteter Code; Migration ist ein eigenes Vorhaben |
 | F8 | Zweisprachigkeit Deutsch und Englisch durchgehend (Labs, Handbuch, Kurs-Repos) | Labs, Handbuch und Kurs-Repos sollen in beiden Sprachen nutzbar sein |
 | F9 | Das Plugin ist eigenständig; einzige Voraussetzung ist das öffentliche Plugin `superpowers` | Portabel auf andere Konten, Profs und Kollegen |
 | F10 | Lizenz MIT, Copyright „whz-ds-labs contributors“ | Wie die früheren Lab-Sammlungen; Organisation statt Person |

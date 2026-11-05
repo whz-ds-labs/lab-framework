@@ -25,6 +25,10 @@ The workflow `release.yml` runs on every push to `main`:
 3. You review that pull request and merge it. This merge is the release decision.
 4. On the following run no pending changesets exist, so `node scripts/publish.mjs` publishes `@whz-ds-labs/lab-kit`, then `@whz-ds-labs/ui` (npm Trusted Publishing with provenance) and finally creates and pushes the tag `v<version>`. The script is safe to repeat: versions that already exist on npm and existing tags are skipped.
 
+Because the "Version Packages" pull request gets no CI run of its own, a branch protection rule that requires status checks would block its merge. The release workflow re-runs the full CI before it publishes, so maintainers either merge that pull request without the required checks (for example as an administrator) or re-trigger CI on it by closing and reopening the pull request.
+
+**Template changes and unreleased APIs.** The plugin marketplace entry points at `./plugin` on `main`, so a change to the course template reaches new installs as soon as it is merged, long before the next npm release. A template change that needs package APIs which are not yet published therefore merges only together with the release that publishes them: one pull request containing the change, the template update and the changeset.
+
 No npm token is stored anywhere. Publishing works through a short-lived identity token (OIDC) from GitHub Actions, with Node 24 and npm 11.5.1 or newer.
 
 ## One-time setup
@@ -58,7 +62,7 @@ npm publish --access public
 | Workflow filename | `release.yml` |
 | Environment | leave empty |
 
-**4. Allow pull requests from Actions.** In the GitHub repo: Settings, Actions, General, Workflow permissions, tick **Allow GitHub Actions to create and approve pull requests**. Without it the Changesets action cannot open the "Version Packages" pull request.
+**4. Allow pull requests from Actions.** In the GitHub repo: Settings, Actions, General, Workflow permissions, tick **Allow GitHub Actions to create and approve pull requests**. Without it the Changesets action cannot open the "Version Packages" pull request. In a **new organization** this must first be allowed at organization level (organization Settings, Actions, General, Workflow permissions); the repository setting stays greyed out until then.
 
 The first real release is then `0.1.0`. If the first publish fails during authentication, see the comment in `release.yml` about `registry-url` and `NODE_AUTH_TOKEN`.
 

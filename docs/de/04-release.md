@@ -25,6 +25,10 @@ Der Workflow `release.yml` läuft bei jedem Push auf `main`:
 3. Du prüfst diesen Pull Request und mergst ihn. Dieser Merge ist die Release-Entscheidung.
 4. Im folgenden Lauf gibt es keine offenen Changesets mehr, deshalb veröffentlicht `node scripts/publish.mjs` zuerst `@whz-ds-labs/lab-kit`, dann `@whz-ds-labs/ui` (npm Trusted Publishing mit Provenance) und legt zuletzt den Tag `v<version>` an und pusht ihn. Das Skript lässt sich gefahrlos wiederholen: Versionen, die schon auf npm liegen, und vorhandene Tags werden übersprungen.
 
+Weil der Pull Request „Version Packages“ keinen eigenen CI-Lauf bekommt, würde eine Branch-Protection-Regel mit erforderlichen Status-Checks seinen Merge blockieren. Der Release-Workflow führt die komplette CI vor dem Veröffentlichen erneut aus; Maintainer mergen diesen Pull Request daher ohne die erforderlichen Checks (zum Beispiel als Administrator) oder stoßen die CI neu an, indem sie den Pull Request schließen und wieder öffnen.
+
+**Template-Änderungen und unveröffentlichte APIs.** Der Marketplace-Eintrag des Plugins zeigt auf `./plugin` im Branch `main`; eine Änderung am Kurs-Template erreicht neue Installationen also, sobald sie gemergt ist, lange vor dem nächsten npm-Release. Eine Template-Änderung, die noch nicht veröffentlichte Paket-APIs braucht, wird deshalb nur zusammen mit dem Release gemergt, das diese APIs veröffentlicht: ein Pull Request mit der Änderung, dem Template-Update und dem Changeset.
+
 Nirgends ist ein npm-Token gespeichert. Das Veröffentlichen läuft über ein kurzlebiges Identitäts-Token (OIDC) von GitHub Actions, mit Node 24 und npm 11.5.1 oder neuer.
 
 ## Einmalige Einrichtung
@@ -58,7 +62,7 @@ npm publish --access public
 | Workflow filename | `release.yml` |
 | Environment | leer lassen |
 
-**4. Pull Requests aus Actions erlauben.** Im GitHub-Repo: Settings, Actions, General, Workflow permissions, **Allow GitHub Actions to create and approve pull requests** anhaken. Ohne diese Einstellung kann die Changesets-Action den Pull Request „Version Packages“ nicht öffnen.
+**4. Pull Requests aus Actions erlauben.** Im GitHub-Repo: Settings, Actions, General, Workflow permissions, **Allow GitHub Actions to create and approve pull requests** anhaken. Ohne diese Einstellung kann die Changesets-Action den Pull Request „Version Packages“ nicht öffnen. In einer **neuen Organisation** muss das zuerst auf Organisationsebene erlaubt werden (Organization Settings, Actions, General, Workflow permissions); bis dahin bleibt die Repo-Einstellung ausgegraut.
 
 Das erste echte Release ist dann `0.1.0`. Schlägt die erste Veröffentlichung bei der Anmeldung fehl, lies den Kommentar in `release.yml` zu `registry-url` und `NODE_AUTH_TOKEN`.
 

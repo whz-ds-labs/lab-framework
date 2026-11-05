@@ -58,7 +58,7 @@ Die Seite nutzt Hash-Routen und funktioniert so auf GitHub Pages ohne Server-Reg
 
 - `<lab>` und `<tool>` sind die IDs aus den Definitionen.
 - `<parameter>` sind die eigenen, kurzen und stabilen Parameternamen des Werkzeugs.
-- `scenario=<id>` kennzeichnet einen fertigen Zustand. Sobald Lernende einen Parameter so ändern, dass der Zustand vom Szenario abweicht, verschwindet der Parameter wieder.
+- `scenario=<id>` kennzeichnet einen fertigen Zustand. Ändern Lernende einen Parameter so, dass der Zustand vom Szenario abweicht, bleibt `scenario=<id>` in der Adresse; die Seite zeigt einen Hinweis „geändert“ mit einem Knopf, der das Szenario wiederherstellt. Der Parameter verschwindet erst, wenn der Hinweis geschlossen wird.
 - `lang` wählt die Oberflächensprache.
 
 Ein Link mit Szenario ist ein stabiler Lehr-Link: Er setzt alle Parameter und kann eine einmalige Aktion ausführen, zum Beispiel ein Bootstrap.
