@@ -1,7 +1,7 @@
 // Builds both framework packages and packs them into tarballs.
 //   node scripts/pack.mjs [<outDir>]      (default: .local-packs)
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { mkdirSync, readdirSync, realpathSync, rmSync } from 'node:fs'
 import { dirname, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -63,7 +63,16 @@ export async function packAll(outDir) {
   return { ui: pick(/^whz-ds-labs-ui-.*\.tgz$/), labKit: pick(/^whz-ds-labs-lab-kit-.*\.tgz$/) }
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isEntryPoint()) {
   packAll(process.argv[2] ?? '.local-packs').then(
     (r) => console.log(JSON.stringify(r, null, 2)),
     (err) => {

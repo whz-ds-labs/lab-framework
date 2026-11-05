@@ -3,7 +3,7 @@
 //   --keep       keep examples/demo-kurs after a successful run (default: empty it again; a failed run always keeps it)
 //   --no-lab     only the empty course, no ausgleichsgerade lab
 //   --skip-e2e   skip the Playwright run
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { scaffold } from '../plugin/scripts/scaffold.mjs'
@@ -120,7 +120,16 @@ function parseFlags(argv) {
   return { keep: argv.includes('--keep'), noLab: argv.includes('--no-lab'), skipE2e: argv.includes('--skip-e2e') }
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isEntryPoint()) {
   try {
     await run(parseFlags(process.argv.slice(2)))
   } catch (err) {

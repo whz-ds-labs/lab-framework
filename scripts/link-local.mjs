@@ -2,7 +2,7 @@
 //   node scripts/link-local.mjs <course-dir>
 // Method: build and pack both packages into .local-packs/, then `npm install --no-save <ui.tgz> <lab-kit.tgz>` in the
 // course directory. Undo with `npm ci` in the course repo.
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, realpathSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { packAll, sh, shOrThrow } from './pack.mjs'
@@ -45,7 +45,16 @@ export async function linkLocal(courseDir) {
   console.log('\nUndo: run `npm ci` in the course repo (re-run this script after any later npm install, uninstall or ci).')
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+  } catch {
+    return false
+  }
+}
+
+if (isEntryPoint()) {
   const target = process.argv[2]
   if (!target) {
     console.error('usage: node scripts/link-local.mjs <course-dir>')

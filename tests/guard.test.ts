@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -36,6 +36,33 @@ describe('guard CLI with non-ASCII file names', () => {
       expect(r.stderr).toContain('Folieä.pdf')
     } finally {
       rmSync(repo, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('guard CLI via a symlinked or junctioned path', () => {
+  it('still detects forbidden files (entry-point detection must realpath argv[1])', () => {
+    const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'check-no-materials.mjs')
+    const base = mkdtempSync(join(tmpdir(), 'guard link '))
+    const repo = join(base, 'repo')
+    const link = join(base, 'scripts-link')
+    try {
+      mkdirSync(repo)
+      try {
+        // 'junction' needs no admin rights on Windows and is ignored on other platforms.
+        symlinkSync(dirname(script), link, 'junction')
+      } catch {
+        return // the platform refuses links: nothing to verify here
+      }
+      const git = (...args: string[]) => spawnSync('git', args, { cwd: repo, encoding: 'utf8' })
+      git('init', '-q')
+      writeFileSync(join(repo, 'slides.pdf'), 'x')
+      git('add', '-A')
+      const r = spawnSync(process.execPath, [join(link, 'check-no-materials.mjs')], { cwd: repo, encoding: 'utf8' })
+      expect(r.status).toBe(1)
+      expect(r.stderr).toContain('slides.pdf')
+    } finally {
+      rmSync(base, { recursive: true, force: true })
     }
   })
 })
