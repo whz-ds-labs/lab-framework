@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { emptyDemo, restoreTracked } from '../scripts/integration.mjs'
+import { emptyDemo, parseFlags, restoreTracked, run } from '../scripts/integration.mjs'
 
 describe('demo cleanup helpers', () => {
   it('empties the folder and restores .gitkeep and README.md byte for byte', () => {
@@ -18,6 +18,28 @@ describe('demo cleanup helpers', () => {
       restoreTracked(dir, saved)
       expect(existsSync(join(dir, '.gitkeep'))).toBe(true)
       expect(readFileSync(join(dir, 'README.md'), 'utf8')).toBe('hello\n')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('integration CLI flags', () => {
+  it('parses --dir together with the other flags', () => {
+    expect(parseFlags(['--dir', '/tmp/x', '--keep', '--skip-e2e'])).toEqual({ dir: '/tmp/x', keep: true, noLab: false, skipE2e: true })
+    expect(parseFlags([])).toEqual({ keep: false, noLab: false, skipE2e: false })
+  })
+  it('rejects --dir without a path and unknown options', () => {
+    expect(() => parseFlags(['--dir'])).toThrow(/needs a path/)
+    expect(() => parseFlags(['--dir', '--keep'])).toThrow(/needs a path/)
+    expect(() => parseFlags(['--nope'])).toThrow(/unknown option/)
+  })
+  it('refuses a non-empty --dir before touching anything', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'demo-nonempty-'))
+    try {
+      writeFileSync(join(dir, 'x.txt'), 'x')
+      await expect(run({ dir })).rejects.toThrow(/must not exist or be empty/)
+      expect(existsSync(join(dir, 'x.txt'))).toBe(true)
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }

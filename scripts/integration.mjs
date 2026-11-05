@@ -1,6 +1,9 @@
 // End-to-end check of the framework as a course repo would use it: pack, scaffold, install, lint, type-check, test, build, e2e.
-//   node scripts/integration.mjs [--keep] [--no-lab] [--skip-e2e]
-//   --keep       keep examples/demo-kurs after a successful run (default: empty it again; a failed run always keeps it)
+//   node scripts/integration.mjs [--dir <path>] [--keep] [--no-lab] [--skip-e2e]
+//   --dir <path> run in this directory (must not exist or be empty) instead of examples/demo-kurs. Use a path OUTSIDE the
+//                repository (CI does): inside it, Node, Vite and TypeScript resolve packages from the framework's own
+//                node_modules and would hide dependencies missing from the course template.
+//   --keep       keep the directory after a successful run (default: empty examples/demo-kurs again, delete a --dir; a failed run always keeps it)
 //   --no-lab     only the empty course, no ausgleichsgerade lab
 //   --skip-e2e   skip the Playwright run
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
@@ -10,6 +13,7 @@ import { scaffold } from '../plugin/scripts/scaffold.mjs'
 import { packAll, repoRoot, shOrThrow } from './pack.mjs'
 
 const DEMO_ID = 'demo-kurs'
+const DEFAULT_DEMO = resolve(repoRoot, 'examples', DEMO_ID)
 const KEEP_FILES = ['.gitkeep', 'README.md']
 
 function step(label) {
@@ -54,11 +58,14 @@ function checkBuild(demo, { lab }) {
 }
 
 /**
- * @param {{ keep?: boolean; noLab?: boolean; skipE2e?: boolean }} opts
+ * @param {{ dir?: string; keep?: boolean; noLab?: boolean; skipE2e?: boolean }} opts
  * @returns {Promise<void>} rejects with the failing command named in the message
  */
 export async function run(opts = {}) {
-  const demo = resolve(repoRoot, 'examples', DEMO_ID)
+  // The default folder is tracked (.gitkeep, README.md) and is emptied/restored; a --dir folder is created fresh.
+  const custom = opts.dir !== undefined && resolve(opts.dir) !== DEFAULT_DEMO
+  const demo = custom ? resolve(opts.dir) : DEFAULT_DEMO
+  if (custom && existsSync(demo) && readdirSync(demo).length > 0) throw new Error(`--dir must not exist or be empty: ${demo}`)
   const inDemo = (command, args, env = {}) => {
     console.log(`\n> ${[command, ...args].join(' ')}`)
     shOrThrow(command, args, { cwd: demo, env })
@@ -70,7 +77,7 @@ export async function run(opts = {}) {
   await packAll(packsDir)
 
   step('scaffold course')
-  const saved = emptyDemo(demo)
+  const saved = custom ? {} : emptyDemo(demo)
   try {
     scaffold('course', {
       dir: demo,
@@ -82,9 +89,15 @@ export async function run(opts = {}) {
   } finally {
     restoreTracked(demo, saved)
   }
+  if (custom) {
+    // Outside the framework repo the folder is no git repo; the guard reads `git ls-files`, as in a real course repo.
+    inDemo('git', ['init', '-q'])
+    inDemo('git', ['add', '-A'])
+  }
   if (!opts.noLab) {
     step('scaffold lab')
     scaffold('lab', { dir: demo, topic: 'ausgleichsgerade', titleDe: 'Ausgleichsgerade', titleEn: 'Least squares line' })
+    if (custom) inDemo('git', ['add', '-A'])
   }
 
   step('install')
@@ -108,16 +121,26 @@ export async function run(opts = {}) {
   }
 
   if (!opts.keep) {
-    const restored = emptyDemo(demo)
-    restoreTracked(demo, restored)
+    if (custom) rmSync(demo, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+    else restoreTracked(demo, emptyDemo(demo))
   }
   console.log('\nintegration ok')
 }
 
-function parseFlags(argv) {
-  const known = new Set(['--keep', '--no-lab', '--skip-e2e'])
-  for (const a of argv) if (!known.has(a)) throw new Error(`unknown option ${a} (use --keep, --no-lab, --skip-e2e)`)
-  return { keep: argv.includes('--keep'), noLab: argv.includes('--no-lab'), skipE2e: argv.includes('--skip-e2e') }
+export function parseFlags(argv) {
+  const flags = { keep: false, noLab: false, skipE2e: false }
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i]
+    if (a === '--keep') flags.keep = true
+    else if (a === '--no-lab') flags.noLab = true
+    else if (a === '--skip-e2e') flags.skipE2e = true
+    else if (a === '--dir') {
+      const value = argv[++i]
+      if (value === undefined || value.startsWith('--')) throw new Error('--dir needs a path')
+      flags.dir = value
+    } else throw new Error(`unknown option ${a} (use --dir <path>, --keep, --no-lab, --skip-e2e)`)
+  }
+  return flags
 }
 
 function isEntryPoint() {

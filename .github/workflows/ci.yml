@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # plugin/test/skills.test.ts runs a Python helper through uv.
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.12
       - run: npm ci
       - run: npm run guard
       - run: npm run check:versions
@@ -39,4 +42,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv python install 3.12
       - run: npm ci
-      - run: node scripts/integration.mjs
+      - run: node scripts/integration.mjs --dir "$RUNNER_TEMP/demo-kurs"
