@@ -20,10 +20,12 @@ import { alpha, beta, demoLab, type AlphaState } from './fixtures/demoLab'
 const runAction = vi.fn<(name: string) => void>()
 
 /** Tiny tool view: renders state.n, emits an update on click, exposes runAction as a spy. */
+let alphaMounts = 0
 const AlphaView = defineComponent({
   props: { state: { type: Object as PropType<AlphaState>, required: true }, labId: { type: String, required: true } },
   emits: ['update:state'],
   setup(props, { emit, expose }) {
+    alphaMounts++
     expose({ runAction })
     return () =>
       h('section', { 'data-verify-unit': 'alpha-view', 'data-lab': props.labId }, [
@@ -67,6 +69,7 @@ beforeEach(() => {
   installKitMessages()
   setLang('de')
   runAction.mockClear()
+  alphaMounts = 0
   for (const n of [...useNotices().value]) dismissNotice(n.id)
   useNarrowViewport().value = false
 })
@@ -76,7 +79,6 @@ afterEach(() => {
   mounted = null
   window.location.hash = ''
   refreshRoute()
-  document.body.style.overflow = ''
 })
 
 describe('LabShell', () => {
@@ -181,6 +183,29 @@ describe('LabShell', () => {
     await w.get('[data-action="help-close"]').trigger('click')
     await flushPromises()
     expect(w.get('main').attributes('inert')).toBeUndefined()
+    expect(document.body.style.overflow).toBe('')
+  })
+
+  it('re-creates the tool view when switching tools and back', async () => {
+    const w = await open('#/demo/alpha')
+    expect(alphaMounts).toBe(1)
+    window.location.hash = '#/demo/beta'
+    await settle()
+    expect(w.find('.n').exists()).toBe(false)
+    expect(w.get('[data-verify-unit="tool-host"]').attributes('data-verify-tool')).toBe('demo/beta')
+    window.location.hash = '#/demo/alpha'
+    await settle()
+    expect(alphaMounts).toBe(2)
+    expect(w.get('.n').exists()).toBe(true)
+  })
+
+  it('resets body overflow when unmounted while the drawer is modal', async () => {
+    useNarrowViewport().value = true
+    const w = await open('#/demo/alpha')
+    await w.get('[data-action="help"]').trigger('click')
+    expect(document.body.style.overflow).toBe('hidden')
+    w.unmount()
+    mounted = null
     expect(document.body.style.overflow).toBe('')
   })
 

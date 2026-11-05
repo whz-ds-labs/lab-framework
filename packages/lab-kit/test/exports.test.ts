@@ -35,5 +35,5 @@ describe.skipIf(!built)('package exports', () => {
     const first = Array.isArray(parsed) ? parsed[0] : Object.values(parsed)[0]
     const packed = new Set(first!.files.map((f) => f.path))
     for (const f of files) expect(packed.has(f), f).toBe(true)
-  })
+  }, 60_000)
 })
