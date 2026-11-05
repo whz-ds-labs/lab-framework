@@ -36,7 +36,7 @@ The dependency direction is one-way: a course repo depends on `ui` and `lab-kit`
 - A **lab** (`defineLab`) is one topic: id, titles, summary, its tools and its message catalogs for German and English.
 - A **tool** (`defineTool`) is one interactive view inside a lab: id, titles, summary, the Vue component, `parse` and `toQuery` for its state, scenarios and help topics.
 
-Ids match `^[a-z][a-z0-9-]{1,40}$`. A wrong definition fails at start-up with a `BAD_DEFINITION` error that names the reason. `createCourseApp(course)` from `@whz-ds-labs/ui` turns the course into the Vue app with header, tool pills, help drawer, language button, course page and lab page.
+Ids match `^[a-z][a-z0-9-]{1,40}$` in the definitions; the scaffold script is stricter and only creates ids that match `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`. A wrong definition fails at start-up with a `BAD_DEFINITION` error that names the reason. `createCourseApp(course)` from `@whz-ds-labs/ui` turns the course into the Vue app with header, tool pills, help drawer, language button, course page and lab page.
 
 ## The tool contract
 

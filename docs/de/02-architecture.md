@@ -36,7 +36,7 @@ Die Abhängigkeit läuft nur in eine Richtung: Ein Kurs-Repo hängt von `ui` und
 - Ein **Lab** (`defineLab`) ist ein Thema: ID, Titel, Kurzbeschreibung, seine Werkzeuge und seine Textkataloge für Deutsch und Englisch.
 - Ein **Werkzeug** (`defineTool`) ist eine interaktive Ansicht innerhalb eines Labs: ID, Titel, Kurzbeschreibung, die Vue-Komponente, `parse` und `toQuery` für den Zustand, Szenarien und Hilfethemen.
 
-IDs entsprechen `^[a-z][a-z0-9-]{1,40}$`. Eine fehlerhafte Definition bricht beim Start mit einem `BAD_DEFINITION`-Fehler ab, der den Grund nennt. `createCourseApp(course)` aus `@whz-ds-labs/ui` macht aus dem Kurs die Vue-App mit Kopfzeile, Werkzeug-Pillen, Hilfe-Schublade, Sprachknopf, Kursseite und Laborseite.
+IDs entsprechen in den Definitionen `^[a-z][a-z0-9-]{1,40}$`; das Gerüst-Skript ist strenger und legt nur IDs an, die `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` entsprechen. Eine fehlerhafte Definition bricht beim Start mit einem `BAD_DEFINITION`-Fehler ab, der den Grund nennt. `createCourseApp(course)` aus `@whz-ds-labs/ui` macht aus dem Kurs die Vue-App mit Kopfzeile, Werkzeug-Pillen, Hilfe-Schublade, Sprachknopf, Kursseite und Laborseite.
 
 ## Der Werkzeug-Vertrag
 

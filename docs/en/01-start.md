@@ -66,7 +66,17 @@ node "<plugin>\scripts\scaffold.mjs" lab --dir "C:\work\data-science-3" --topic 
 
 Ids must match `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`. Titles must not contain quotes, backslash, backtick, `$`, `<`, `>`, `{`, `}` or `%`. The script prints the created paths, or exits with one line on stderr and writes nothing. The lab is registered in `site/course.ts` under the name `<camelTopic>Lab`, for example `ausgleichsgeradeLab`.
 
-Then, inside the course folder, one command per line:
+Until the first framework release (0.1.0) is on npm, `npm install` cannot find the framework packages. Use one of two interim routes, both with a local framework build from a clone of the framework repo (one command per line):
+
+```powershell
+Set-Location "C:\src\lab-framework"
+node scripts/pack.mjs .local-packs
+```
+
+- **At scaffold time:** add `--packs "C:\src\lab-framework\.local-packs"` to the `scaffold.mjs course` command above. The course then depends on the two tarballs.
+- **After install:** run `node scripts/link-local.mjs "C:\work\data-science-3"` in the framework repo; see [Linking a local framework build](02-architecture.md#linking-a-local-framework-build).
+
+Then, inside the course folder, one command per line (the `git` lines make the first commit, including the lockfile; do not push before you have decided on a remote):
 
 ```powershell
 Set-Location "C:\work\data-science-3"
@@ -76,17 +86,20 @@ npm run test:py
 npx playwright install chromium
 npm run test:e2e
 npm run build
+git init -b main
+git add -A
+git commit -m "chore: scaffold course"
 npm run dev
 ```
 
-`npm test` runs the unit tests, `npm run test:py` the Python golden tests (needs uv), `npm run test:e2e` the browser tests (needs the Chromium download once), `npm run build` the type check and the production build, `npm run dev` the local site. As long as the first framework release (0.1.0) is not on npm, install your local framework build instead: see [Linking a local framework build](02-architecture.md#linking-a-local-framework-build).
+`npm test` runs the unit tests, `npm run test:py` the Python golden tests (needs uv), `npm run test:e2e` the browser tests (needs the Chromium download once), `npm run build` the type check and the production build, `npm run dev` the local site.
 
 ## Where the plugin lives
 
-Claude Code copies an installed plugin into its plugin cache below your user folder. To find the script after installation:
+Claude Code copies an installed plugin into its plugin cache. On Windows the folder is `%USERPROFILE%\.claude\plugins\cache\whz-ds-labs\ds-labs\<version>\`, on macOS and Linux `~/.claude/plugins/cache/whz-ds-labs/ds-labs/<version>/`. If several version folders exist, take the highest one; that folder is `<plugin>`. This layout was observed with Claude Code 2.1.31x and may change. If the folder is not there, search only the marketplace part of the cache:
 
 ```powershell
-Get-ChildItem -Path "$env:USERPROFILE\.claude\plugins" -Recurse -Filter scaffold.mjs | Select-Object -ExpandProperty FullName
+Get-ChildItem -Path "$env:USERPROFILE\.claude\plugins\cache\whz-ds-labs" -Recurse -Filter scaffold.mjs | Select-Object -ExpandProperty FullName
 ```
 
 The folder that contains `scripts\scaffold.mjs` is `<plugin>`. If you work from a clone of the framework repo instead, `<plugin>` is its `plugin` folder.
