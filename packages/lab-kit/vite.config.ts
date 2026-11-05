@@ -5,8 +5,8 @@ const exclude = ['plugin/templates/**', 'examples/**', '**/dist/**', '**/node_mo
 export default defineConfig({
   build: {
     lib: {
-      // Later tasks add: worker, testing/index, testing/e2e, stylelint/index, stylelint/config.
-      entry: { index: 'src/index.ts' },
+      // Later tasks add: testing/index, testing/e2e, stylelint/index, stylelint/config.
+      entry: { index: 'src/index.ts', worker: 'src/worker.ts' },
       formats: ['es'],
     },
     // Vite 8 (Rolldown): `rolldownOptions` is current, `rollupOptions` is the deprecated alias.
