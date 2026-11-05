@@ -75,7 +75,7 @@ A tool is a standalone Vue component. It knows no router and no URL.
 
 ## Worker pattern
 
-`worker/jobs.ts` holds the pure job function (shared by worker and unit tests). `worker/<x>.worker.ts` calls `serveJobs` from `@whz-ds-labs/lab-kit/worker`. `worker/client.ts` calls `createJobClient(() => new Worker(new URL('./x.worker.ts', import.meta.url), { type: 'module' }))`. The tool starts a job, shows `loading` while it runs, ignores results of outdated `runId`s, and shows `error` with `data-verify-error` when the job fails.
+The pure job function lives in `core/` (the template: `bootstrapSlope` in `core/bootstrap.ts`), so the worker and the unit tests share it. `worker/jobs.ts` holds only the job type (the template: `LineJob`). `worker/<x>.worker.ts` imports the function and calls `serveJobs` from `@whz-ds-labs/lab-kit/worker`. `worker/client.ts` calls `createJobClient(() => new Worker(new URL('./x.worker.ts', import.meta.url), { type: 'module' }))`. The tool starts a job, shows `loading` while it runs, ignores results of outdated `runId`s, and shows `error` with `data-verify-error` when the job fails.
 
 ## Commands
 

@@ -15,7 +15,7 @@ Ask once, in one message, for whatever `$ARGUMENTS` did not provide:
 
 - Course id (lowercase letters, digits, single dashes inside; 2-41 characters; starts with a letter), German course title, English course title.
 - Topic id (same rules) and German and English topic title. A topic is one lab, for example `ausgleichsgerade`.
-- Where the repos live: default is a folder next to the current directory. Reuse existing clones side by side (`<course>` and `<course>-intern`) if they exist.
+- Where the repos live: default is the current working folder, which should be empty (`<path>` below is that folder). The two repos become the sub-folders `<course>` and `<course>-intern` inside it. Reuse existing clones side by side there if they exist.
 
 Titles must not contain quotes, backslash, backtick, `$`, `<`, `>`, `{`, `}` or `%`. If the user gives such characters, ask for a variant without them.
 
@@ -95,15 +95,18 @@ git remote add origin https://github.com/whz-ds-labs/<repo>.git
 
 ## Step 5: Install and smoke test the new course repo
 
-In the course repo, one command at a time:
+In the course repo, one command at a time. This covers the four checks every course repo must pass (Vitest, pytest golden tests, Playwright, build):
 
 ```
 npm install
 npm test
+npm run test:py
+npx playwright install chromium
+npm run test:e2e
 npm run build
 ```
 
-Report what passed and what failed, with the relevant output lines. Tell the user to commit `package-lock.json` (CI runs `npm ci` and fails without it). Do not commit or push on your own.
+`npm run test:py` needs uv (checked in step 2). On Linux use `npx playwright install --with-deps chromium` instead of the plain install. Report what passed and what failed, with the relevant output lines. Tell the user to commit `package-lock.json` (CI runs `npm ci` and fails without it). Do not commit or push on your own.
 
 ## Step 6: The flow
 

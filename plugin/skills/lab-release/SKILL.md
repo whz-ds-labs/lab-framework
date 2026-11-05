@@ -22,7 +22,7 @@ Run this before the lab is merged to `main`. Report every item as done, failed o
 
 ## When the framework itself is released
 
-Releasing `@whz-ds-labs/lab-kit`, `@whz-ds-labs/ui` and the `ds-labs` plugin (Changesets, Trusted Publishing, plugin version sync) follows the release flow in chapter 4 of the framework handbook. That is a maintainer task in the framework repository, not part of a course release.
+Releasing `@whz-ds-labs/lab-kit`, `@whz-ds-labs/ui` and the `ds-labs` plugin (Changesets, Trusted Publishing, plugin version sync) follows the release flow in chapter 4 of the framework handbook. That is a maintainer task in the framework repository, not part of a course release. One rule from that chapter matters here: the marketplace entry serves `./plugin` from `main`, so a template change that needs package APIs not yet published must merge only together with the release that publishes them (one pull request with the change, the template update and the changeset).
 
 ## Report
 
