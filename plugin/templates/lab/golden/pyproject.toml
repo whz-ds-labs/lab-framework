@@ -1,0 +1,13 @@
+[project]
+name = "lab-golden"
+version = "0.0.0"
+description = "Golden-file oracle for the example lab (scikit-learn)."
+requires-python = "==3.12.*"
+dependencies = [
+  "numpy==2.5.4",
+  "scikit-learn==1.9.1",
+  "pytest==9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
