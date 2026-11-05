@@ -28,12 +28,13 @@ Run one command each and report a short pass/fail list. Name the fix for every f
 | GitHub login | `gh auth status` | logged in | `gh auth login` |
 | Node | `node -v` | 24.15 or newer | install Node 24 LTS from nodejs.org (or `winget install OpenJS.NodeJS.LTS`) |
 | uv | `uv --version` | any current version | `winget install --id astral-sh.uv` on Windows; the installer from docs.astral.sh/uv on macOS and Linux |
+| git | `git --version` | 2.28 or newer (needed for `git init -b`) | install Git from git-scm.com (or `winget install Git.Git`) |
 | superpowers | check the available skills for `superpowers:brainstorming` | installed | see below |
 
 Which failures are hard depends on the mode:
 
-- **With GitHub repos (default):** all four checks must pass.
-- **Local-only (the user declined GitHub repos) and `packs=` mode:** `gh` is not needed. A failing `gh auth status` is a warning only and must not block. Node, uv and superpowers remain hard.
+- **With GitHub repos (default):** all five checks must pass; `git` 2.28 or newer is a hard requirement here.
+- **Local-only (the user declined GitHub repos) and `packs=` mode:** `gh` is not needed. A failing `gh auth status` is a warning only and must not block. Node, uv and superpowers remain hard; a missing or old `git` is a warning (skip step 4b then).
 
 If superpowers is missing, tell the user to run this in Claude Code (verified against the superpowers README):
 
@@ -79,7 +80,7 @@ The script prints the created paths and exits 1 with one line on stderr when an 
 
 ## Step 4b: Git (ask first)
 
-The scaffold does not run `git init`, and `gh repo create` without `--clone` leaves the new folders unlinked to their GitHub repos. Ask the user whether to set up git in the new folders now. If yes, in each new folder (`<course>` and `<course>-intern`), one command at a time:
+The scaffold does not run `git init`, and `gh repo create` without `--clone` leaves new local folders unlinked to their GitHub repos. Ask the user whether to set up git in the folders you scaffolded fresh just now. Folders that came from `git clone` already are repos with an `origin`: never run `git init` or `git remote add` there; they only get the local identity (the two `git config --local` lines). For each freshly scaffolded folder (`<course>` and `<course>-intern`), one command at a time:
 
 ```
 git init -b main
@@ -89,7 +90,7 @@ git remote add origin https://github.com/whz-ds-labs/<repo>.git
 ```
 
 - Identity: `<login>` comes from `gh api user --jq .login` and `<id>` from `gh api user --jq .id`. Use `git config --local` only. Never run `git config --global` or `git config --list`, never read or print an address that is already configured, and never mention one. If `gh` is unavailable, ask the user for their GitHub noreply address (`<id>+<login>@users.noreply.github.com`).
-- Add the `origin` remote only for a repo that was created in step 3 (or already exists); in local-only mode skip it.
+- Add the `origin` remote only to a freshly scaffolded folder whose GitHub repo was created in step 3 or already exists remotely; never to a clone. In local-only mode skip the remote.
 - Do not commit, push, or set upstream without the user's explicit approval in chat.
 
 ## Step 5: Install and smoke test the new course repo
