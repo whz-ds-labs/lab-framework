@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.local-packs/
+examples/demo-kurs/*
+!examples/demo-kurs/.gitkeep
+!examples/demo-kurs/README.md
+.venv/
+test-results/
+playwright-report/
+design-shots/
+.env*
+!.env.example
+*.ipynb
+*.pdf
+docs/superpowers/
+.superpowers/
