@@ -96,6 +96,8 @@ export function defineTool<S>(t: ToolDefinition<S>): ToolDefinition<S> {
 
 export function defineLab(l: LabDefinition): LabDefinition {
   checkId('lab', l.id)
+  // "kit" is the message scope of the framework texts; a lab registering under it would replace them.
+  if (l.id === 'kit') bad('lab id "kit" is reserved for the framework message scope', l.id)
   for (const t of l.tools) checkId('tool', t.id)
   checkUnique('tool', `lab ${l.id}`, l.tools.map((t) => t.id))
   return l

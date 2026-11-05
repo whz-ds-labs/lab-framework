@@ -52,6 +52,12 @@ describe('defineLab / defineCourse', () => {
     expect(defineLab(demoLab)).toBe(demoLab)
   })
 
+  it('rejects the reserved lab id "kit" (it would overwrite the framework message scope)', () => {
+    const e = failure(() => defineLab({ ...demoLab, id: 'kit' }))
+    expect(e.code).toBe('BAD_DEFINITION')
+    expect(String(e.details?.reason)).toMatch(/reserved/)
+  })
+
   it('rejects duplicate lab ids', () => {
     expect(() => defineCourse({ ...demoCourse, labs: [demoLab, demoLab] })).toThrow(/BAD_DEFINITION/)
     expect(() => defineCourse({ ...demoCourse, id: 'x' })).toThrow(/BAD_DEFINITION/)

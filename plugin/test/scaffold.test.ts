@@ -178,6 +178,10 @@ describe('scaffold lab', () => {
     expect(() => scaffold('lab', labOpts('Bad_Id'))).toThrow(/invalid id/)
   })
 
+  it('rejects the reserved id "kit" (framework message scope)', () => {
+    expect(() => scaffold('lab', labOpts('kit'))).toThrow(/reserved/)
+  })
+
   it('refuses an existing lab', () => {
     scaffold('lab', labOpts('line-fit'))
     expect(() => scaffold('lab', labOpts('line-fit'))).toThrow(/exists/)

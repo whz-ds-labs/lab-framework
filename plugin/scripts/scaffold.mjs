@@ -240,6 +240,8 @@ export function scaffold(kind, opts = {}) {
 
   // lab
   checkId(opts.topic, 'topic')
+  // "kit" is the message scope of the framework texts; a lab with that id would overwrite them.
+  if (opts.topic === 'kit') fail('"kit" is a reserved id (framework message scope); choose another topic id')
   checkTitle(opts.titleDe, '--title-de')
   checkTitle(opts.titleEn, '--title-en')
   if (opts.packs !== undefined) fail('--packs is only valid for course')
