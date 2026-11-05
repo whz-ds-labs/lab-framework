@@ -49,6 +49,9 @@ const de = {
     progress: '{done} von {total}',
   },
   home: {
+    labsTitle: 'Labore',
+    scenarios: 'Szenarien',
+    roadmapTitle: 'Was kommt noch',
     toolsTitle: 'Werkzeuge',
     goal: 'Lernziel',
     open: '{tool} öffnen',

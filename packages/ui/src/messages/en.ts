@@ -53,6 +53,9 @@ const en: Messages<typeof de> = {
     progress: '{done} of {total}',
   },
   home: {
+    labsTitle: 'Labs',
+    scenarios: 'Scenarios',
+    roadmapTitle: "What's next",
     toolsTitle: 'Tools',
     goal: 'Learning goal',
     open: 'Open {tool}',
