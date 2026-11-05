@@ -54,6 +54,11 @@ test('keyboard only: the add-point button adds a point, focuses it and the arrow
   await page.keyboard.press('ArrowUp')
   await expect.poll(() => page.url()).not.toBe(before)
   await expect(plot).toHaveAttribute('data-verify-count', '21')
+  // a second press does not stack on the first point: the next free x is used
+  await add.click()
+  await expect(plot).toHaveAttribute('data-verify-count', '22', T)
+  await expect(own).toHaveCount(2)
+  expect(decodeURIComponent(page.url())).toMatch(/pts=5:[^,]+,5\.5:/)
 })
 
 test('a click on the plot adds a point, reset removes it again', async ({ page }) => {

@@ -17,18 +17,24 @@ function step(label) {
 }
 
 /** Empties the demo folder except the two tracked files and returns their contents so they can be restored. */
-function emptyDemo(demo) {
+export function emptyDemo(demo) {
   mkdirSync(demo, { recursive: true })
   const saved = {}
   for (const f of KEEP_FILES) {
     const p = join(demo, f)
     if (existsSync(p)) saved[f] = readFileSync(p)
   }
-  for (const entry of readdirSync(demo)) rmSync(join(demo, entry), { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+  try {
+    for (const entry of readdirSync(demo)) rmSync(join(demo, entry), { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+  } catch (err) {
+    // A failed delete (e.g. EPERM on node_modules) must not leave the tracked files deleted.
+    restoreTracked(demo, saved)
+    throw err
+  }
   return saved
 }
 
-function restoreTracked(demo, saved) {
+export function restoreTracked(demo, saved) {
   for (const [f, content] of Object.entries(saved)) writeFileSync(join(demo, f), content)
 }
 

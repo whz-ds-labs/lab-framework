@@ -27,7 +27,7 @@ const base = analyze({})
 const r2d = (v: number): number => Number(v.toFixed(2))
 /** Every number in a text (decimal comma or point, optional minus sign), as numbers. */
 function numbersIn(text: string): number[] {
-  return [...text.matchAll(/-?\d+(?:[.,]\d+)?/g)].map((m) => Number(m[0].replace(',', '.')))
+  return [...text.matchAll(/[-−]?\d+(?:[.,]\d+)?/g)].map((m) => Number(m[0].replace('−', '-').replace(',', '.')))
 }
 /** Fails for any number of the scenario texts (DE and EN) that is not in the proven set. */
 function expectOnlyProven(id: string, proven: number[]): void {
@@ -69,6 +69,12 @@ describe('s1: few noisy points give an unstable slope', () => {
       for (const v of [0.5, s1.slope, s1.r2, s1.ci.lo, s1.ci.hi, base.width]) expect(t).toContain(fmt(lang, v, v === 0.5 ? 1 : 2))
     })
   }
+})
+
+describe('numbersIn', () => {
+  it('keeps the sign of U+2212 and decimal commas', () => {
+    expect(numbersIn('−0,34 und -0.5 sowie 8')).toEqual([-0.34, -0.5, 8])
+  })
 })
 
 describe('s1: no number outside the proven set', () => {

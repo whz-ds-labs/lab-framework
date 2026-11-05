@@ -45,7 +45,14 @@ const plotPanel = ref<HTMLElement | null>(null)
 /** Keyboard way to add a point: at the plot center on the fitted line; the new point takes the focus (arrow keys move it). */
 async function addPointAtCenter(): Promise<void> {
   if (full.value) return
-  const x = (X_RANGE.min + X_RANGE.max) / 2
+  // Next free x around the center (5, 5.5, 4.5, 6, ...), so repeated presses never stack points.
+  const taken = new Set(props.state.pts.map((p) => p.x))
+  const center = (X_RANGE.min + X_RANGE.max) / 2
+  let x = center
+  for (let k = 1; taken.has(x) && k <= 40; k++) {
+    const cand = round2(center + (k % 2 === 1 ? 1 : -1) * Math.ceil(k / 2) * 0.5)
+    if (cand >= X_RANGE.min && cand <= X_RANGE.max) x = cand
+  }
   addPoint({ x, y: fit.value.ok ? fit.value.intercept + fit.value.slope * x : (Y_RANGE.min + Y_RANGE.max) / 2 })
   await nextTick()
   const own = plotPanel.value?.querySelectorAll<SVGElement>('[data-layer="point"][tabindex="0"]')
