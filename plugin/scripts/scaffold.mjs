@@ -6,6 +6,9 @@
 //   node scaffold.mjs intern --dir <path> --course <id>
 //   node scaffold.mjs lab    --dir <course-dir> --topic <id> --title-de <s> --title-en <s>
 //
+// Every command also accepts --templates <dir> (default: ../templates next to this script);
+// meant for tests and framework development only.
+//
 // Exit codes: 0 ok (created paths printed), 1 usage/validation error (one line on
 // stderr, nothing written).
 import {
@@ -17,13 +20,14 @@ import { fileURLToPath } from 'node:url'
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 
 const ID_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
+// Words that are illegal as an import binding in an ES module (reserved words, strict-mode
+// reserved words, eval/arguments). Contextual words such as of/as/from/get/set/type are fine.
 const RESERVED_WORDS = new Set([
   'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
   'else', 'enum', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in',
   'instanceof', 'new', 'null', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof',
   'var', 'void', 'while', 'with', 'yield', 'let', 'static', 'implements', 'interface', 'package',
-  'private', 'protected', 'public', 'await', 'async', 'of', 'as', 'from', 'get', 'set', 'type',
-  'undefined', 'NaN', 'Infinity', 'arguments', 'eval',
+  'private', 'protected', 'public', 'await', 'eval', 'arguments',
 ])
 const KNOWN_PLACEHOLDER_RE =
   /%%(course|courseTitleDe|courseTitleEn|topic|topicTitleDe|topicTitleEn|frameworkVersion|year)%%/g
@@ -69,6 +73,31 @@ function checkDir(value) {
 
 function camelCase(id) {
   return id.replace(/-([a-z0-9])/g, (_m, c) => c.toUpperCase())
+}
+
+/** Names already bound at (or near) top level of a TS module: imports and declarations. */
+function declaredNames(source) {
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/.*$/gm, '$1')
+  const names = new Set()
+  const ident = /^[A-Za-z_$][\w$]*$/
+  for (const m of text.matchAll(/^\s*import\s+(?:type\s+)?([^'";]*?)\s+from\s+['"][^'"]+['"]/gm)) {
+    const clause = m[1]
+    const braces = /\{([\s\S]*)\}/.exec(clause)
+    if (braces) {
+      for (const part of braces[1].split(',')) {
+        const words = part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)
+        const local = (words[1] ?? words[0]).trim()
+        if (ident.test(local)) names.add(local)
+      }
+    }
+    for (const part of clause.replace(/\{[\s\S]*\}/, '').split(',')) {
+      const local = part.trim().replace(/^\*\s*as\s+/, '')
+      if (ident.test(local)) names.add(local)
+    }
+  }
+  const decl = /^\s*(?:export\s+)?(?:declare\s+)?(?:async\s+)?(?:const|let|var|function\s*\*?|class)\s+([A-Za-z_$][\w$]*)/gm
+  for (const m of text.matchAll(decl)) names.add(m[1])
+  return names
 }
 
 function frameworkVersion() {
@@ -236,8 +265,8 @@ export function scaffold(kind, opts = {}) {
   })
   const name = camelCase(opts.topic)
   if (RESERVED_WORDS.has(name)) fail(`topic "${opts.topic}" maps to the reserved word "${name}"; choose another id`)
-  if (new RegExp('\\blab as ' + name + '\\b').test(courseText)) {
-    fail(`site/course.ts already imports an identifier "${name}"; choose another topic id`)
+  if (declaredNames(courseText).has(name)) {
+    fail(`site/course.ts already declares "${name}"; choose another topic id`)
   }
   let updated = insertBeforeMarker(
     courseText,
