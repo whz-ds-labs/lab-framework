@@ -20,15 +20,6 @@ import { fileURLToPath } from 'node:url'
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 
 const ID_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
-// Words that are illegal as an import binding in an ES module (reserved words, strict-mode
-// reserved words, eval/arguments). Contextual words such as of/as/from/get/set/type are fine.
-const RESERVED_WORDS = new Set([
-  'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
-  'else', 'enum', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in',
-  'instanceof', 'new', 'null', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof',
-  'var', 'void', 'while', 'with', 'yield', 'let', 'static', 'implements', 'interface', 'package',
-  'private', 'protected', 'public', 'await', 'eval', 'arguments',
-])
 const KNOWN_PLACEHOLDER_RE =
   /%%(course|courseTitleDe|courseTitleEn|topic|topicTitleDe|topicTitleEn|frameworkVersion|year)%%/g
 const ANY_PLACEHOLDER_RE = /%%[A-Za-z]+%%/
@@ -75,7 +66,12 @@ function camelCase(id) {
   return id.replace(/-([a-z0-9])/g, (_m, c) => c.toUpperCase())
 }
 
-/** Names already bound at (or near) top level of a TS module: imports and declarations. */
+/**
+ * Names already bound at (or near) top level of a TS module: imports and simple declarations.
+ * Known limit: destructuring, multiple declarators, default-exported functions and type aliases
+ * are not scanned. site/course.ts is template-generated and every lab binding ends in "Lab",
+ * so exotic binding forms are out of scope.
+ */
 function declaredNames(source) {
   const text = source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/.*$/gm, '$1')
   const names = new Set()
@@ -263,8 +259,7 @@ export function scaffold(kind, opts = {}) {
     frameworkVersion: version,
     year,
   })
-  const name = camelCase(opts.topic)
-  if (RESERVED_WORDS.has(name)) fail(`topic "${opts.topic}" maps to the reserved word "${name}"; choose another id`)
+  const name = `${camelCase(opts.topic)}Lab`
   if (declaredNames(courseText).has(name)) {
     fail(`site/course.ts already declares "${name}"; choose another topic id`)
   }

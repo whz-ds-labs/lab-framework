@@ -162,16 +162,16 @@ describe('scaffold lab', () => {
     expect(read(dir, 'labs/line-fit/lab.ts')).toContain("id: 'line-fit'")
     expect(read(dir, 'labs/line-fit/Intro.vue')).toContain('{{ y }}')
     const course = read(dir, 'site/course.ts')
-    expect(course).toMatch(/import \{ lab as lineFit \} from '\.\.\/labs\/line-fit\/lab'\n\/\/ ds-labs:lab-imports/)
-    expect(course).toMatch(/ {4}lineFit,\n {4}\/\/ ds-labs:lab-list/)
+    expect(course).toMatch(/import \{ lab as lineFitLab \} from '\.\.\/labs\/line-fit\/lab'\n\/\/ ds-labs:lab-imports/)
+    expect(course).toMatch(/ {4}lineFitLab,\n {4}\/\/ ds-labs:lab-list/)
   })
 
   it('adds a second lab keeping the first', () => {
     scaffold('lab', labOpts('line-fit'))
     scaffold('lab', labOpts('knn'))
     const course = read(dir, 'site/course.ts')
-    expect(course).toContain('lineFit,')
-    expect(course).toContain('knn,')
+    expect(course).toContain('lineFitLab,')
+    expect(course).toContain('knnLab,')
   })
 
   it('rejects invalid ids', () => {
@@ -192,53 +192,45 @@ describe('scaffold lab', () => {
     expect(existsSync(join(dir, 'labs', 'line-fit'))).toBe(false)
   })
 
-  it('rejects ids that would yield invalid identifiers', () => {
+  it('rejects ids with leading, trailing or double dashes', () => {
     for (const t of ['a--b', 'knn-', '-knn']) expect(() => scaffold('lab', labOpts(t))).toThrow(/invalid id/)
-    for (const t of ['default', 'new', 'class', 'delete']) {
-      expect(() => scaffold('lab', labOpts(t))).toThrow(/reserved word/)
+  })
+
+  it('binds every lab as <camel>Lab so reserved words and template names cannot clash', () => {
+    for (const t of ['default', 'new', 'class', 'delete', 'undefined', 'course', 'of', 'type']) {
+      scaffold('lab', labOpts(t))
     }
-    expect(existsSync(join(dir, 'labs', 'default'))).toBe(false)
+    const course = read(dir, 'site/course.ts')
+    expect(course).toContain("import { lab as defaultLab } from '../labs/default/lab'")
+    expect(course).toContain('undefinedLab,')
+    expect(course).toContain('courseLab,')
+    expect(course).toContain('export const course = {')
   })
 
   it('refuses when the derived identifier is already imported', () => {
     scaffold('lab', labOpts('a1'))
     const before = read(dir, 'site/course.ts')
-    expect(() => scaffold('lab', labOpts('a-1'))).toThrow(/already declares/)
+    expect(read(dir, 'site/course.ts')).toContain('lab as a1Lab')
+    expect(() => scaffold('lab', labOpts('a-1'))).toThrow(/already declares "a1Lab"/)
     expect(read(dir, 'site/course.ts')).toBe(before)
     expect(existsSync(join(dir, 'labs', 'a-1'))).toBe(false)
   })
 
-  it('refuses a topic whose identifier collides with a top-level declaration', () => {
-    const before = read(dir, 'site/course.ts')
-    expect(() => scaffold('lab', labOpts('course'))).toThrow(/already declares/)
-    expect(read(dir, 'site/course.ts')).toBe(before)
-    expect(existsSync(join(dir, 'labs', 'course'))).toBe(false)
-  })
-
-  it('refuses identifiers that collide with imported names of any import form', () => {
+  it('refuses identifiers that collide with imports and simple top-level declarations', () => {
     const file = join(dir, 'site', 'course.ts')
     const src = readFileSync(file, 'utf8')
     writeFileSync(
       file,
-      "import { defineCourse, other as renamed } from '@whz-ds-labs/ui'\nimport foo from 'x'\nimport * as ns from 'y'\n" +
-        "// const commented = 1\nlet counter = 0\nfunction helper() {}\nclass Widget {}\n" + src,
+      "import { defineCourseLab, other as renamedLab } from '@whz-ds-labs/ui'\nimport fooLab from 'x'\nimport * as nsLab from 'y'\n" +
+        "// const commentedLab = 1\nlet counterLab = 0\nfunction helperLab() {}\nclass WidgetLab {}\nclass widgetLab {}\n" + src,
     )
     const before = readFileSync(file, 'utf8')
     for (const t of ['define-course', 'renamed', 'foo', 'ns', 'counter', 'helper', 'widget']) {
-      // 'widget' differs in case from 'Widget': allowed; the others must be refused
-      if (t === 'widget') continue
       expect(() => scaffold('lab', labOpts(t)), t).toThrow(/already declares/)
     }
     expect(readFileSync(file, 'utf8')).toBe(before)
     scaffold('lab', labOpts('commented'))
-    expect(read(dir, 'site/course.ts')).toContain('lab as commented')
-  })
-
-  it('allows words that are only contextual keywords as import bindings', () => {
-    for (const t of ['of', 'as', 'from', 'get', 'set', 'type']) {
-      scaffold('lab', labOpts(t))
-      expect(read(dir, 'site/course.ts')).toContain(`lab as ${t} }`)
-    }
+    expect(read(dir, 'site/course.ts')).toContain('lab as commentedLab')
   })
 
   it('refuses a course.ts without the import marker and leaves it unchanged', () => {
@@ -256,7 +248,7 @@ describe('scaffold lab', () => {
     scaffold('lab', labOpts('line-fit'))
     const course = readFileSync(file, 'utf8')
     expect(course).toContain("lab'\r\n// ds-labs:lab-imports")
-    expect(course).toContain('    lineFit,\r\n    // ds-labs:lab-list')
+    expect(course).toContain('    lineFitLab,\r\n    // ds-labs:lab-list')
     expect(course.replace(/\r\n/g, '')).not.toMatch(/[\r\n]/)
   })
 
