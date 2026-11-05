@@ -21,4 +21,10 @@ describe.skipIf(!built)('entries import in plain Node (no DOM)', () => {
     expect(r.stderr).toBe('')
     expect(r.status).toBe(0)
   })
+
+  it('dist/testing/index.js', () => {
+    const r = importInNode('dist/testing/index.js')
+    expect(r.stderr).toBe('')
+    expect(r.status).toBe(0)
+  })
 })

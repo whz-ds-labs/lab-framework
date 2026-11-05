@@ -30,6 +30,14 @@
     "./worker": {
       "types": "./dist/worker.d.ts",
       "default": "./dist/worker.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    },
+    "./testing/e2e": {
+      "types": "./dist/testing/e2e.d.ts",
+      "default": "./dist/testing/e2e.js"
     }
   },
   "scripts": {
