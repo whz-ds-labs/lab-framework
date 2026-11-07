@@ -120,6 +120,18 @@ describe('scaffold course', () => {
     expect(deps['@whz-ds-labs/lab-kit']).toContain('whz-ds-labs-lab-kit-0.0.0.tgz')
   })
 
+  it("--packs refuses a path with '#' or '%' (npm would misparse the file: spec)", () => {
+    for (const [i, bad] of ['packs#1', 'packs%20x'].entries()) {
+      const packs = join(tmp, bad)
+      mkdirSync(packs)
+      writeFileSync(join(packs, 'whz-ds-labs-ui-0.0.0.tgz'), 'x')
+      writeFileSync(join(packs, 'whz-ds-labs-lab-kit-0.0.0.tgz'), 'x')
+      const dir = join(tmp, `o${i}`)
+      expect(() => scaffold('course', { ...courseOpts(dir), packs })).toThrow(/must not contain '#' or '%'/)
+      expect(existsSync(dir)).toBe(false)
+    }
+  })
+
   it('--packs requires exactly one tarball of each kind', () => {
     const packs = join(tmp, 'packs')
     mkdirSync(packs)

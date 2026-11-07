@@ -166,7 +166,10 @@ function findPacks(packsDir) {
   const pick = (re, label) => {
     const hits = names.filter((n) => re.test(n))
     if (hits.length !== 1) fail(`--packs needs exactly one ${label} tarball in ${dir}, found ${hits.length}`)
-    return `file:${resolve(dir, hits[0]).replace(/\\/g, '/')}`
+    const tarball = resolve(dir, hits[0]).replace(/\\/g, '/')
+    // The path goes into a `file:` spec unencoded, and npm parses `#` (committish) and `%` (escape) in it.
+    if (/[#%]/.test(tarball)) fail(`--packs path must not contain '#' or '%': ${tarball}`)
+    return `file:${tarball}`
   }
   return {
     ui: pick(/^whz-ds-labs-ui-.*\.tgz$/, 'whz-ds-labs-ui-*.tgz'),
