@@ -95,6 +95,24 @@ describe('useToolState', () => {
     expect(api.problems.value).toEqual([])
   })
 
+  it('setState drops the URL problems: the user value replaces the corrected one', async () => {
+    const { api } = await mountAlpha('#/demo/alpha?n=abc')
+    expect(api.problems.value).toEqual(['n'])
+    api.setState({ n: 4, mode: 'a' })
+    expect(api.problems.value).toEqual([])
+    // a later address change reports problems again
+    await setHash('#/demo/alpha?n=99')
+    expect(api.problems.value).toEqual(['n'])
+  })
+
+  it('setState also drops the problem of an unknown scenario id, because the write removes that parameter', async () => {
+    const { api } = await mountAlpha('#/demo/alpha?n=abc&scenario=zz')
+    expect(api.problems.value).toEqual(['n', 'scenario'])
+    api.setState({ n: 4, mode: 'a' })
+    expect(window.location.hash).toBe('#/demo/alpha?n=4')
+    expect(api.problems.value).toEqual([])
+  })
+
   it('runs the scenario action once, after the state was adopted', async () => {
     const { api, calls } = await mountAlpha('#/demo/alpha?mode=b&scenario=a2')
     expect(api.scenario.active.value?.id).toBe('a2')

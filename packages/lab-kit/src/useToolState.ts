@@ -41,8 +41,15 @@ export function useToolState<S>(
 
   const scenario = useScenario(labId, tool, () => tool.toQuery(state.value), runAction)
 
+  /**
+   * Adopts a state the user chose and writes it to the address. The address is then rewritten from that state, so
+   * the problems found while reading it (corrected values, an unknown scenario id that the write drops) no longer
+   * describe it: they are cleared. A later route change (hashchange, refreshRoute) reports problems again.
+   */
   function setState(next: S): void {
     state.value = next
+    urlProblems.value = []
+    scenario.problems.value = []
     writeToolQuery(labId, tool, tool.toQuery(next))
   }
 
