@@ -12,7 +12,7 @@ Everything a successor needs so that DS Labs keeps running without the original 
 ## Repositories and settings
 
 - [ ] List of repos: `lab-framework` (public), one public repo `<course>` and one private repo `<course>-intern` for each course. The intern repos stay private and move with the owner role.
-- [ ] **Pages** in every public course repo: Settings, Pages, Source = **GitHub Actions**. The published address works after the first deploy of `pages.yml`.
+- [ ] **Pages** in every public course repo: Settings, Pages, Source = **GitHub Actions**. The published address works after the first deploy of `pages.yml`, which starts once the CI run on `main` has succeeded.
 - [ ] Settings in `lab-framework`: Actions may create and approve pull requests; branch protection on `main` as agreed; the Renovate app is installed in the organization with access to all course repos.
 - [ ] Every course repo builds green in CI (`gh run list --limit 3`), and its `package-lock.json` and `golden/uv.lock` files are committed.
 - [ ] Course material lives only in the `-intern` repos. `npm run guard` passes in every public repo.

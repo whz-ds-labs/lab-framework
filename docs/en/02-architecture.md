@@ -83,7 +83,7 @@ A link with a scenario is a stable teaching link: it sets all parameters and may
     golden/              make_golden.py, pyproject.toml, uv.lock
     tests/               unit, golden JSON, e2e
   scripts/               guard, changed-labs, run-golden
-  .github/workflows/     CI and GitHub Pages deploy
+  .github/workflows/     CI and GitHub Pages deploy (deploys only after a successful CI run on `main`)
 ```
 
 The private repo `<course>-intern` sits next to it and holds `materials/` (slides, notebooks) and `docs/<topic>/` (analyses, specifications, plans). Python versions are pinned per lab, because notebooks of different topics use different environments. The Pages deploy builds with `VITE_BASE=/<repository name>/`.

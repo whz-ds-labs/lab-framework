@@ -12,7 +12,7 @@ Alles, was Nachfolger brauchen, damit DS Labs ohne den ursprünglichen Autor wei
 ## Repos und Einstellungen
 
 - [ ] Repo-Liste: `lab-framework` (öffentlich), je Kurs ein öffentliches Repo `<kurs>` und ein privates Repo `<kurs>-intern`. Die Intern-Repos bleiben privat und gehen mit der Owner-Rolle über.
-- [ ] **Pages** in jedem öffentlichen Kurs-Repo: Settings, Pages, Source = **GitHub Actions**. Die veröffentlichte Adresse funktioniert nach dem ersten Deploy von `pages.yml`.
+- [ ] **Pages** in jedem öffentlichen Kurs-Repo: Settings, Pages, Source = **GitHub Actions**. Die veröffentlichte Adresse funktioniert nach dem ersten Deploy von `pages.yml`; er startet, sobald die CI-Workflow-Ausführung auf `main` erfolgreich war.
 - [ ] Einstellungen in `lab-framework`: Actions dürfen Pull Requests erstellen und freigeben; Branch-Schutz auf `main` wie vereinbart; die Renovate-App ist in der Organisation installiert und hat Zugriff auf alle Kurs-Repos.
 - [ ] Jedes Kurs-Repo baut grün in der CI (`gh run list --limit 3`), und seine Dateien `package-lock.json` und `golden/uv.lock` sind eingecheckt.
 - [ ] Kursmaterial liegt nur in den `-intern`-Repos. `npm run guard` besteht in jedem öffentlichen Repo.

@@ -83,7 +83,7 @@ Ein Link mit Szenario ist ein stabiler Lehr-Link: Er setzt alle Parameter und ka
     golden/              make_golden.py, pyproject.toml, uv.lock
     tests/               Unit, Golden-JSON, e2e
   scripts/               Guard, changed-labs, run-golden
-  .github/workflows/     CI und Deploy auf GitHub Pages
+  .github/workflows/     CI und Deploy auf GitHub Pages (Deploy erst nach erfolgreicher CI auf `main`)
 ```
 
 Das private Repo `<kurs>-intern` liegt daneben und enthält `materials/` (Folien, Notebooks) und `docs/<thema>/` (Analysen, Spezifikationen, Pläne). Python-Versionen werden je Lab festgelegt, weil Notebooks verschiedener Themen unterschiedliche Umgebungen nutzen. Der Pages-Deploy baut mit `VITE_BASE=/<Repo-Name>/`.

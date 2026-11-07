@@ -77,6 +77,17 @@ describe('real course template', () => {
     expect(read(dir, 'renovate.json')).toContain('"rangeStrategy": "pin"')
   })
 
+  it('deploys Pages only after a successful CI run, not on every push', () => {
+    const dir = make()
+    const pages = read(dir, '.github/workflows/pages.yml')
+    expect(read(dir, '.github/workflows/ci.yml')).toMatch(/^name: CI$/m)
+    expect(pages).toMatch(/workflow_run:\s+workflows: \[CI\]\s+types: \[completed\]\s+branches: \[main\]/)
+    expect(pages).toContain('workflow_dispatch:')
+    expect(pages).not.toMatch(/^\s*push:/m)
+    expect(pages).toContain("github.event.workflow_run.conclusion == 'success'")
+    expect(pages).toContain('${{ github.event.workflow_run.head_sha || github.sha }}')
+  })
+
   it('renames underscore files and leaves no placeholder behind', () => {
     const dir = make()
     for (const f of ['CLAUDE.md', '.gitignore', '.gitattributes', 'LICENSE', 'README.md', 'scripts/check-no-materials.mjs']) {
