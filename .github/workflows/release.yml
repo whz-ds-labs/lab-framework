@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # The "Version Packages" PR is created with GITHUB_TOKEN and therefore triggers no
+  # ci.yml run of its own, so the release re-runs all checks before publishing.
+  checks:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      # Trusted Publishing (OIDC) needs npm >= 11.5.1, shipped with Node 24.
+      # registry-url makes setup-node write an .npmrc that sends ${NODE_AUTH_TOKEN} (a
+      # placeholder in CI). scripts/publish.mjs therefore runs `npm view` and `npm publish`
+      # with NODE_AUTH_TOKEN blanked, so the placeholder neither causes E401 nor overrides
+      # the OIDC token. If the first real run still fails OIDC authentication, remove
+      # registry-url and check that run's log.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: git config user.name "github-actions[bot]"
+      - run: git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        id: changesets
+        with:
+          version: npm run version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish and tag
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: node scripts/publish.mjs

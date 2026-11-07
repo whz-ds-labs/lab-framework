@@ -1,0 +1,9 @@
+.a {
+  border: 1px solid var(--ds-accent);
+  border-top: 1px solid var(--ds-accent);
+  border-bottom: 2px dashed var(--ds-accent);
+  border-block-start: 1px solid var(--ds-accent);
+  border-inline-end: 1px solid var(--ds-accent);
+  border-width: 1px;
+  border-style: solid;
+}

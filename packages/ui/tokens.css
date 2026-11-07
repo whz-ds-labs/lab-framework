@@ -1,0 +1,102 @@
+/*
+ * DS Labs design tokens v0 "Flächen": structure through three surface levels (page, area, card) and spacing,
+ * not through lines. Raw colours live only in this file; everything else uses var(--ds-*).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces: page < area < card. */
+  --ds-surface-page: #f3f4f6;
+  --ds-surface-area: #e9ecf1;
+  --ds-surface-card: #ffffff;
+
+  /* Text. */
+  --ds-text: #1b2230;
+  --ds-text-muted: #4f596b;
+
+  /* Accent and focus. */
+  --ds-accent: #2b5c9e;
+  --ds-accent-contrast: #ffffff;
+  --ds-focus: #b4530a;
+
+  /* Status. */
+  --ds-error: #b3261e;
+  --ds-error-bg: #fdecea;
+  --ds-ok: #1d6b3a;
+  --ds-warn: #8a5a00;
+
+  /* Input fields only (the one place a border is allowed besides focus rings). */
+  --ds-input-border: #7d8594;
+
+  /* Plots. */
+  --ds-plot-axis: #5b6577;
+  --ds-plot-grid: #d9dde5;
+  --ds-points: #111827;
+
+  /* Class colours (Okabe-Ito based, colour-blind safe): blue, vermillion, bluish green, magenta, olive, grey. */
+  --ds-class-0: #0072b2;
+  --ds-class-1: #d55e00;
+  --ds-class-2: #007a5a;
+  --ds-class-3: #b0407f;
+  --ds-class-4: #8c7300;
+  --ds-class-5: #5f6b7a;
+
+  /* Spacing. */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.5rem;
+  --ds-space-6: 2rem;
+  --ds-space-7: 3rem;
+
+  /* Radii. */
+  --ds-radius-s: 6px;
+  --ds-radius-m: 10px;
+  --ds-radius-l: 16px;
+  --ds-radius-pill: 999px;
+
+  /* Typography. */
+  --ds-font-s: 0.85rem;
+  --ds-font-m: 1rem;
+  --ds-font-l: 1.25rem;
+  --ds-font-xl: 1.6rem;
+  --ds-weight-regular: 400;
+  --ds-weight-strong: 600;
+
+  /* Minimum target size. */
+  --ds-hit: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ds-surface-page: #12161c;
+    --ds-surface-area: #1a1f27;
+    --ds-surface-card: #222833;
+
+    --ds-text: #e8edf5;
+    --ds-text-muted: #aab3c2;
+
+    --ds-accent: #7fb0ee;
+    --ds-accent-contrast: #12161c;
+    --ds-focus: #f5b062;
+
+    --ds-error: #f2877f;
+    --ds-error-bg: #3a1f1d;
+    --ds-ok: #6fcf97;
+    --ds-warn: #e6c35c;
+
+    --ds-input-border: #6b7485;
+
+    --ds-plot-axis: #8d97a8;
+    --ds-plot-grid: #2c3442;
+    --ds-points: #ffffff;
+
+    --ds-class-0: #56b4e9;
+    --ds-class-1: #f0a030;
+    --ds-class-2: #3ccb9f;
+    --ds-class-3: #e08ac0;
+    --ds-class-4: #e6d34a;
+    --ds-class-5: #a9b4c3;
+  }
+}

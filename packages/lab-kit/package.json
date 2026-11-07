@@ -1,0 +1,80 @@
+{
+  "name": "@whz-ds-labs/lab-kit",
+  "version": "0.0.0",
+  "description": "Framework-free core and Vue runtime for DS Labs teaching tools",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.15"
+  },
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whz-ds-labs/lab-framework.git",
+    "directory": "packages/lab-kit"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "default": "./dist/worker.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    },
+    "./testing/e2e": {
+      "types": "./dist/testing/e2e.d.ts",
+      "default": "./dist/testing/e2e.js"
+    },
+    "./stylelint": {
+      "types": "./dist/stylelint/index.d.ts",
+      "default": "./dist/stylelint/index.js"
+    },
+    "./stylelint/config": {
+      "types": "./dist/stylelint/config.d.ts",
+      "default": "./dist/stylelint/config.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build && vue-tsc -p tsconfig.json --declaration --emitDeclarationOnly --outDir dist",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.0",
+    "postcss": "^8.5.0",
+    "postcss-html": "^2.0.0",
+    "stylelint": "^18.0.0",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@axe-core/playwright": {
+      "optional": true
+    },
+    "@playwright/test": {
+      "optional": true
+    },
+    "postcss": {
+      "optional": true
+    },
+    "postcss-html": {
+      "optional": true
+    },
+    "stylelint": {
+      "optional": true
+    }
+  }
+}

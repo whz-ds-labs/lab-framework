@@ -1,0 +1,4 @@
+input {
+  /* ds-labs-allow: */
+  border: 1px solid var(--ds-accent);
+}

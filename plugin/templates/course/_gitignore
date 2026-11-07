@@ -1,0 +1,15 @@
+node_modules/
+dist/
+design-shots/
+test-results/
+playwright-report/
+.venv/
+.pytest_cache/
+__pycache__/
+materials/
+*.ipynb
+*.pdf
+.env*
+!.env.example
+.superpowers/
+docs/superpowers/

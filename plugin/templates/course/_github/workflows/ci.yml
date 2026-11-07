@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # package-lock.json must be committed: npm ci refuses to run without it.
+      - run: npm ci
+      - run: npm run guard
+      - run: npm run lint:css
+      - run: npx vue-tsc --noEmit
+      - run: npm test
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.12
+      - name: Golden tests of changed labs
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: |
+          LABS="$(node scripts/changed-labs.mjs --base "$BASE" | tr ' ' ',')"
+          node scripts/run-golden.mjs --labs "$LABS"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/

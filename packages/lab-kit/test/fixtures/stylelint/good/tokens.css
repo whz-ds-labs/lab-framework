@@ -1,0 +1,29 @@
+:root {
+  --ds-accent: var(--ds-base-accent);
+}
+
+.card {
+  color: var(--ds-accent);
+  background: var(--ds-surface-1, transparent);
+  border: none;
+  border-top: 0;
+  border-bottom: 0 solid var(--ds-accent);
+  border-width: 0;
+  border-style: hidden;
+  fill: currentcolor;
+  font-family: Georgia, serif;
+  animation-name: red-pulse;
+  grid-area: red;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ds-accent);
+}
+
+.icon {
+  fill: url(#gradient-1);
+}
+
+.layout > .item:not(.hr-line) {
+  margin: 0;
+}

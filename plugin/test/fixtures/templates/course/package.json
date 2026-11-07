@@ -1,0 +1,10 @@
+{
+  "name": "%%course%%",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@whz-ds-labs/lab-kit": "%%frameworkVersion%%",
+    "@whz-ds-labs/ui": "%%frameworkVersion%%"
+  }
+}

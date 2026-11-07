@@ -1,0 +1,100 @@
+/* Base styles: flat surfaces, no borders. Needs tokens.css (import "@whz-ds-labs/ui/tokens.css"). */
+body {
+  margin: 0;
+  background: var(--ds-surface-page);
+  color: var(--ds-text);
+  font-size: var(--ds-font-m);
+  font-weight: var(--ds-weight-regular);
+}
+
+a {
+  color: var(--ds-accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ds-focus); /* ds-labs-allow: focus ring */
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Buttons: neutral on the area level by default, .primary for the one main action of a group. */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--ds-hit);
+  min-width: var(--ds-hit);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border: 0;
+  border-radius: var(--ds-radius-m);
+  background: var(--ds-surface-area);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-font-m);
+  cursor: pointer;
+}
+
+.ds-btn:hover:not(:disabled) {
+  color: var(--ds-accent);
+}
+
+.ds-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ds-btn.primary {
+  background: var(--ds-accent);
+  color: var(--ds-accent-contrast);
+  font-weight: var(--ds-weight-strong);
+}
+
+.ds-btn.primary:hover:not(:disabled) {
+  color: var(--ds-accent-contrast);
+  opacity: 0.9;
+}
+
+.ds-btn.small {
+  padding: var(--ds-space-1) var(--ds-space-3);
+  font-size: var(--ds-font-s);
+}
+
+/* Pills: navigation chips; the current one is filled. */
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--ds-hit);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-surface-area);
+  color: var(--ds-text);
+  font-size: var(--ds-font-m);
+  text-decoration: none;
+}
+
+.ds-pill:hover {
+  color: var(--ds-accent);
+}
+
+.ds-pill[aria-current] {
+  background: var(--ds-accent);
+  color: var(--ds-accent-contrast);
+  font-weight: var(--ds-weight-strong);
+}

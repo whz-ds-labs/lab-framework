@@ -1,0 +1,9 @@
+input {
+  /* ds-labs-allow: input fields keep a visible edge so they stay recognisable */
+  border: 1px solid var(--ds-accent);
+}
+
+.legacy {
+  /* ds-labs-allow: brand mark must keep its exact print colour */
+  color: #123456;
+}

@@ -1,0 +1,1 @@
+# Intern rules for %%course%%

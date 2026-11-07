@@ -1,0 +1,48 @@
+{
+  "name": "whz-ds-labs-framework",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DS Labs framework monorepo: lab-kit, ui and the ds-labs Claude plugin",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.15"
+  },
+  "workspaces": [
+    "packages/lab-kit",
+    "packages/ui",
+    "plugin"
+  ],
+  "scripts": {
+    "build": "npm run build -w @whz-ds-labs/lab-kit && npm run build -w @whz-ds-labs/ui",
+    "typecheck": "vue-tsc --noEmit -p packages/lab-kit/tsconfig.json && vue-tsc --noEmit -p packages/ui/tsconfig.json",
+    "test": "vitest run",
+    "lint:css": "stylelint \"packages/ui/src/**/*.{css,vue}\"",
+    "guard": "node scripts/check-no-materials.mjs",
+    "check:versions": "node scripts/sync-plugin-version.mjs --check",
+    "integration": "node scripts/integration.mjs",
+    "link:local": "node scripts/link-local.mjs",
+    "version": "changeset version && node scripts/sync-plugin-version.mjs && npm install --package-lock-only",
+    "release": "npm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@changesets/cli": "3.0.3",
+    "@playwright/test": "1.64.1",
+    "@types/d3-scale": "4.0.9",
+    "@types/node": "24.19.2",
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/test-utils": "2.5.1",
+    "d3-scale": "4.0.3",
+    "happy-dom": "21.0.4",
+    "katex": "0.19.1",
+    "postcss": "8.5.32",
+    "postcss-html": "2.0.0",
+    "stylelint": "18.0.0",
+    "typescript": "~5.9.3",
+    "vite": "8.3.6",
+    "vitest": "5.1.0",
+    "vue": "3.5.45",
+    "vue-tsc": "3.3.14"
+  }
+}
