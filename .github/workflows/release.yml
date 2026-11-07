@@ -28,10 +28,11 @@ jobs:
         with:
           fetch-depth: 0
       # Trusted Publishing (OIDC) needs npm >= 11.5.1, shipped with Node 24.
-      # If the first real run fails OIDC authentication because registry-url wrote an
-      # .npmrc with an empty NODE_AUTH_TOKEN, fall back to removing registry-url (or set
-      # NODE_AUTH_TOKEN: "" explicitly on the publish step). Check this on
-      # the first real release run.
+      # registry-url makes setup-node write an .npmrc that sends ${NODE_AUTH_TOKEN} (a
+      # placeholder in CI). scripts/publish.mjs therefore runs `npm view` and `npm publish`
+      # with NODE_AUTH_TOKEN blanked, so the placeholder neither causes E401 nor overrides
+      # the OIDC token. If the first real run still fails OIDC authentication, remove
+      # registry-url and check that run's log.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24

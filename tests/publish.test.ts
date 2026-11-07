@@ -68,6 +68,28 @@ describe('classifyViewResult', () => {
     expect(classifyViewResult(0, '""')).toBe('error')
   })
 
+  it('treats an array containing the requested version as published (npm 12 prints ["0.1.0"])', () => {
+    expect(classifyViewResult(0, '["0.1.0"]\n', '', '0.1.0')).toBe('published')
+    expect(classifyViewResult(0, '["0.0.9","0.1.0"]', '', '0.1.0')).toBe('published')
+    expect(classifyViewResult(0, '', '["0.1.0"]', '0.1.0')).toBe('published')
+  })
+
+  it('fails closed on an array without the requested version, an empty array or a non-zero exit', () => {
+    expect(classifyViewResult(0, '["0.0.9"]', '', '0.1.0')).toBe('error')
+    expect(classifyViewResult(0, '[]', '', '0.1.0')).toBe('error')
+    expect(classifyViewResult(0, '["0.1.0"]')).toBe('error')
+    expect(classifyViewResult(1, '["0.1.0"]', '', '0.1.0')).toBe('error')
+    expect(classifyViewResult(0, '[1]', '', '0.1.0')).toBe('error')
+  })
+
+  it('treats the E404 "No match found for version" error as missing', () => {
+    const out = JSON.stringify({
+      error: { code: 'E404', summary: 'No match found for version 0.1.0', detail: 'No match found for version 0.1.0' },
+    })
+    expect(classifyViewResult(1, out, '', '0.1.0')).toBe('missing')
+    expect(classifyViewResult(1, '', out, '0.1.0')).toBe('missing')
+  })
+
   it('treats unparsable output and exit 0 without version as error', () => {
     expect(classifyViewResult(1, 'boom')).toBe('error')
     expect(classifyViewResult(1, '')).toBe('error')

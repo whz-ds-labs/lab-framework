@@ -26,9 +26,10 @@ export const packages = [
 ]
 
 /**
- * Environment for `npm view`: setup-node's `registry-url` writes an .npmrc that sends
- * ${NODE_AUTH_TOKEN} (a placeholder in CI), which would make the registry answer E401 even
- * for public reads. An empty value keeps the .npmrc interpolation valid but sends no token.
+ * Environment for `npm view` and `npm publish`: setup-node's `registry-url` writes an .npmrc that
+ * sends ${NODE_AUTH_TOKEN} (a placeholder in CI). That would make the registry answer E401 even
+ * for public reads and would override the OIDC token of Trusted Publishing on publish. An empty
+ * value keeps the .npmrc interpolation valid but sends no token.
  */
 export function viewEnv(env = process.env) {
   return { ...env, NODE_AUTH_TOKEN: '' }
@@ -36,13 +37,20 @@ export function viewEnv(env = process.env) {
 
 /**
  * Classify the result of `npm view <name>@<version> version --json`.
- * npm may print the JSON error object to stdout or stderr, so stdout is used if non-empty,
- * otherwise stderr. An E404 error object means "missing" whatever the exit code; any other
- * error object (E401, ENOTFOUND, ETIMEDOUT, ...) is "error". A bare version string counts as
- * "published" only with exit 0; with a non-zero exit it is treated as "error" (conservative:
- * never publish on an ambiguous answer).
+ * npm may print the JSON to stdout or stderr, so stdout is used if non-empty, otherwise stderr.
+ * - An E404 error object means "missing" whatever the exit code (this includes npm's
+ *   "No match found for version" for a package that exists without that version).
+ * - With exit 0, "published" is a non-empty version string, or (npm 12 prints an array even for an
+ *   exact version) an array that contains the requested version.
+ * - Everything else is "error": any other error object (E401, ENOTFOUND, ETIMEDOUT, ...), a
+ *   non-zero exit with a version, an empty or foreign array, unparsable output. Fail closed:
+ *   never publish on an ambiguous answer.
+ * @param {number} exitCode
+ * @param {string} stdout
+ * @param {string} [stderr]
+ * @param {string} [version] the exact version that was requested
  */
-export function classifyViewResult(exitCode, stdout, stderr = '') {
+export function classifyViewResult(exitCode, stdout, stderr = '', version) {
   const text = String(stdout ?? '').trim() || String(stderr ?? '').trim()
   let parsed
   try {
@@ -50,10 +58,10 @@ export function classifyViewResult(exitCode, stdout, stderr = '') {
   } catch {
     return 'error'
   }
-  if (parsed && typeof parsed === 'object') {
-    return parsed.error?.code === 'E404' ? 'missing' : 'error'
-  }
-  return exitCode === 0 && typeof parsed === 'string' && parsed !== '' ? 'published' : 'error'
+  if (exitCode === 0 && typeof parsed === 'string' && parsed !== '') return 'published'
+  if (exitCode === 0 && Array.isArray(parsed) && version !== undefined && parsed.includes(version)) return 'published'
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.error?.code === 'E404') return 'missing'
+  return 'error'
 }
 
 /**
@@ -98,7 +106,7 @@ function main() {
   for (const p of packages) {
     const spec = `${p.name}@${versions[p.name]}`
     const res = run('npm', ['view', spec, 'version', '--json'], { env: viewEnv() })
-    const kind = classifyViewResult(res.status ?? 1, res.stdout ?? '', res.stderr ?? '')
+    const kind = classifyViewResult(res.status ?? 1, res.stdout ?? '', res.stderr ?? '', versions[p.name])
     if (kind === 'error') die(`cannot determine whether ${spec} is published, aborting:\n${res.stdout}${res.stderr}`)
     if (kind === 'published') published.add(spec)
     console.log(`${spec}: ${kind}`)
@@ -117,7 +125,12 @@ function main() {
   for (const name of plan.publish) {
     const dir = packages.find((p) => p.name === name).dir
     console.log(`publishing ${name}@${versions[name]}`)
-    const res = run('npm', ['publish', '-w', `packages/${dir}`, '--access', 'public', '--provenance'], { stdio: 'inherit' })
+    // Same blanked env as `npm view`: setup-node's placeholder NODE_AUTH_TOKEN must not override
+    // the OIDC token of Trusted Publishing.
+    const res = run('npm', ['publish', '-w', `packages/${dir}`, '--access', 'public', '--provenance'], {
+      stdio: 'inherit',
+      env: viewEnv(),
+    })
     if (res.status !== 0) die(`npm publish failed for ${name}`)
   }
 
